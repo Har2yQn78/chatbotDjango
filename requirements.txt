@@ -1,0 +1,10 @@
+Django
+jupyter
+openai
+pgvector
+psycopg[binary]
+python-decouple
+dj-database-url
+dateparser
+numpy
+mistralai
