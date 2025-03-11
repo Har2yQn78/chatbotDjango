@@ -1,11 +1,16 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
+from pgvector.django import VectorField
+
+EMBEDDING_MODEL="mistral-embed"
+EMBEDDING_LENGHT=1024
 
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
+    embedding = VectorField(dimensions=EMBEDDING_LENGHT, blank=True, null=True)
     
     def __str__(self):
         return str(self.name)
@@ -24,6 +29,7 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     image = models.ImageField(upload_to='products/', blank=True, null=True)
+    embedding = VectorField(dimensions=EMBEDDING_LENGHT, blank=True, null=True)
     
     def __str__(self):
         return str(self.name)
@@ -40,6 +46,7 @@ class Inventory(models.Model):
     last_ordered = models.DateField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    embedding = VectorField(dimensions=EMBEDDING_LENGHT, blank=True, null=True)
     
     def __str__(self):
         return f"{self.item_name} - {self.quantity} {self.unit}"
@@ -70,6 +77,7 @@ class Order(models.Model):
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, default='cash')
     notes = models.TextField(blank=True)
+    embedding = VectorField(dimensions=EMBEDDING_LENGHT, blank=True, null=True)
 
     def __str__(self):
         return f"Order #{self.id} - {self.status}"
@@ -79,6 +87,7 @@ class OrderItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     unit_price = models.DecimalField(max_digits=6, decimal_places=2)
     customizations = models.TextField(blank=True, help_text="e.g., extra shot, less sugar")
+    embedding = VectorField(dimensions=EMBEDDING_LENGHT, blank=True, null=True)
     
 
 class Employee(models.Model):
@@ -95,6 +104,7 @@ class Employee(models.Model):
     hire_date = models.DateField()
     phone = models.CharField(max_length=20)
     emergency_contact = models.CharField(max_length=200, blank=True)
+    embedding = VectorField(dimensions=EMBEDDING_LENGHT, blank=True, null=True)
 
 
 
@@ -114,6 +124,7 @@ class Expense(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     description = models.TextField()
     receipt = models.FileField(upload_to='expenses/', blank=True, null=True)
+    embedding = VectorField(dimensions=EMBEDDING_LENGHT, blank=True, null=True)
     
     def __str__(self):
         return f"{self.category} - ${self.amount} on {self.date}"
