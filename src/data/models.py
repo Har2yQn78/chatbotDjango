@@ -21,6 +21,7 @@ class BlogPost(models.Model):
         has_changed = False
         if self._content != self.content:
             has_changed = True
+            self._content = self.content 
         if (self.embedding is None) or has_changed == True:
             raw_embedding_text = self.get_embedding_text_raw()
             if raw_embedding_text is not None:
