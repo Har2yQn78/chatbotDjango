@@ -3,8 +3,10 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from pgvector.django import VectorField
 
+from . import services
+
 EMBEDDING_MODEL="mistral-embed"
-EMEDDING_LENGTH=1024
+EMEDDING_LENGTH=services.EMEDDING_LENGTH
 
 
 class BlogPost(models.Model):
