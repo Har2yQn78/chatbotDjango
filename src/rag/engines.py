@@ -48,7 +48,7 @@ def get_semantic_query_engine():
 
 
 def get_default_sql_engine_tables() -> List[str]:
-    BlogPost = apps.get_model("blog", "BlogPost")
+    BlogPost = apps.get_model("data", "BlogPost")
     PageView = apps.get_model("analytics", "PageView")
     tables = []
     models = [BlogPost, PageView]
