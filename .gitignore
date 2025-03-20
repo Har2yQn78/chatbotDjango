@@ -2,3 +2,4 @@ venv/
 .idea/
 notebooks/.ipynb_checkpoints/
 .env
+datasets/
