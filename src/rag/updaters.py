@@ -5,7 +5,7 @@ from . import engines
 
 def update_llama_index_documents(use_saved_embeddings=True):
     vector_index = engines.get_semantic_query_index()
-    BlogPost = apps.get_model("blog", "BlogPost")
+    BlogPost = apps.get_model("data", "BlogPost")
     docs = []
     qs = BlogPost.objects.filter(can_delete=True)
     for obj in qs:
