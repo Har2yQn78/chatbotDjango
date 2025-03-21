@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mb-4">RAG Query Interface</h1>
+            
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form id="queryForm">
+                        <div class="form-group">
+                            <label for="queryInput">Enter your query:</label>
+                            <textarea class="form-control" id="queryInput" rows="3" placeholder="e.g., What are the top 5 most viewed blog posts?"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-2">Submit Query</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card" id="responseCard" style="display: none;">
+                <div class="card-header">
+                    Response
+                </div>
+                <div class="card-body">
+                    <div id="responseContent"></div>
+                </div>
+            </div>
+            
+            <div class="spinner-border text-primary mt-3" role="status" id="loadingSpinner" style="display: none;">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('queryForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const query = document.getElementById('queryInput').value.trim();
+        if (!query) {
+            alert('Please enter a query');
+            return;
+        }
+        
+        // Show loading spinner
+        document.getElementById('loadingSpinner').style.display = 'block';
+        document.getElementById('responseCard').style.display = 'none';
+        
+        // Send AJAX request
+        const formData = new FormData();
+        formData.append('query', query);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+        
+        fetch('{% url "query_rag" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Hide loading spinner
+            document.getElementById('loadingSpinner').style.display = 'none';
+            
+            // Show response
+            document.getElementById('responseCard').style.display = 'block';
+            
+            if (data.success) {
+                // Use a markdown parser library to render markdown
+                // For simplicity, we're just setting the HTML directly here
+                document.getElementById('responseContent').innerHTML = data.response;
+            } else {
+                document.getElementById('responseContent').innerHTML = 
+                    `<div class="alert alert-danger">Error: ${data.error}</div>`;
+            }
+        })
+        .catch(error => {
+            // Hide loading spinner
+            document.getElementById('loadingSpinner').style.display = 'none';
+            
+            // Show error
+            document.getElementById('responseCard').style.display = 'block';
+            document.getElementById('responseContent').innerHTML = 
+                `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        });
+    });
+</script>
+{% endblock %}

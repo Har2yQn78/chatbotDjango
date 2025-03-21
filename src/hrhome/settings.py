@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'data',
     'analytics',
     'products',
+    'ragui',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -60,6 +61,7 @@ ROOT_URLCONF = 'hrhome.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'src/templates'],
         'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
