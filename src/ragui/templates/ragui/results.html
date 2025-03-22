@@ -1,0 +1,99 @@
+{% extends 'ragui/base.html' %}
+
+{% block title %}Blog Post Analytics{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+<script>
+    $(document).ready(function() {
+        document.querySelectorAll('pre code').forEach((el) => {
+            hljs.highlightElement(el);
+        });
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Most Viewed Blog Posts</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-7">
+                        {{ most_viewed|safe|linebreaksbr }}
+                    </div>
+                    <div class="col-md-5">
+                        <div class="debug-info">
+                            {% if most_viewed_debug.query_type == 'SQL' %}
+                                <div class="alert alert-info">
+                                    <strong>Query Type:</strong> SQL
+                                </div>
+                                <div class="mb-3">
+                                    <strong>Explanation:</strong>
+                                    <p>{{ most_viewed_debug.explanation }}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <strong>SQL Query:</strong>
+                                    <pre><code class="language-sql">{{ most_viewed_debug.sql_query }}</code></pre>
+                                </div>
+                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#mostViewedFullDebug">
+                                    Show Full Debug Output
+                                </button>
+                                <div class="collapse mt-3" id="mostViewedFullDebug">
+                                    <div class="card card-body">
+                                        <pre>{{ most_viewed_debug.full_debug }}</pre>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Least Viewed Blog Posts</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-7">
+                        {{ least_viewed|safe|linebreaksbr }}
+                    </div>
+                    <div class="col-md-5">
+                        <div class="debug-info">
+                            {% if least_viewed_debug.query_type == 'SQL' %}
+                                <div class="alert alert-info">
+                                    <strong>Query Type:</strong> SQL
+                                </div>
+                                <div class="mb-3">
+                                    <strong>Explanation:</strong>
+                                    <p>{{ least_viewed_debug.explanation }}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <strong>SQL Query:</strong>
+                                    <pre><code class="language-sql">{{ least_viewed_debug.sql_query }}</code></pre>
+                                </div>
+                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#leastViewedFullDebug">
+                                    Show Full Debug Output
+                                </button>
+                                <div class="collapse mt-3" id="leastViewedFullDebug">
+                                    <div class="card card-body">
+                                        <pre>{{ least_viewed_debug.full_debug }}</pre>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
