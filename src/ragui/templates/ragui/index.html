@@ -1,91 +1,293 @@
-{% extends "base.html" %}
+{% extends 'ragui/base.html' %}
+
+{% block title %}RAG Query Interface{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-12">
-            <h1 class="mb-4">RAG Query Interface</h1>
-            
-            <div class="card mb-4">
-                <div class="card-body">
-                    <form id="queryForm">
-                        <div class="form-group">
-                            <label for="queryInput">Enter your query:</label>
-                            <textarea class="form-control" id="queryInput" rows="3" placeholder="e.g., What are the top 5 most viewed blog posts?"></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary mt-2">Submit Query</button>
-                    </form>
-                </div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>RAG Query Interface</h5>
             </div>
-            
-            <div class="card" id="responseCard" style="display: none;">
-                <div class="card-header">
-                    Response
-                </div>
-                <div class="card-body">
-                    <div id="responseContent"></div>
-                </div>
-            </div>
-            
-            <div class="spinner-border text-primary mt-3" role="status" id="loadingSpinner" style="display: none;">
-                <span class="sr-only">Loading...</span>
+            <div class="card-body">
+                <form id="query-form" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ form.query.label_tag }}
+                        {{ form.query }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit Query</button>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
+{% if response %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Query Response</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-7">
+                        <div class="response-content">
+                            {{ response|safe|linebreaksbr }}
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="debug-info">
+                            {% if debug_info.query_type == 'SQL' %}
+                                <div class="alert alert-info">
+                                    <strong>Query Type:</strong> SQL
+                                </div>
+                                <div class="mb-3">
+                                    <strong>Explanation:</strong>
+                                    <p>{{ debug_info.explanation }}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <strong>SQL Query:</strong>
+                                    <pre><code class="language-sql">{{ debug_info.sql_query }}</code></pre>
+                                </div>
+                                <div class="mb-3">
+                                    <strong>SQL Response:</strong>
+                                    <div class="sql-response">
+                                        {{ debug_info.sql_response|linebreaksbr }}
+                                    </div>
+                                </div>
+                            {% elif debug_info.query_type == 'Vector' %}
+                                <div class="alert alert-info">
+                                    <strong>Query Type:</strong> Vector
+                                </div>
+                                <div class="mb-3">
+                                    <strong>Explanation:</strong>
+                                    <p>{{ debug_info.explanation }}</p>
+                                </div>
+                            {% endif %}
+                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#fullDebugInfo">
+                                Show Full Debug Output
+                            </button>
+                            <div class="collapse mt-3" id="fullDebugInfo">
+                                <div class="card card-body">
+                                    <pre>{{ debug_info.full_debug }}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if source_nodes %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Source Nodes</h5>
+            </div>
+            <div class="card-body">
+                {% for node in source_nodes %}
+                <div class="source-node mb-3 p-3 border rounded">
+                    {{ node.node.text|safe|linebreaksbr }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
 <script>
-    document.getElementById('queryForm').addEventListener('submit', function(e) {
-        e.preventDefault();
+    $(document).ready(function() {
+        document.querySelectorAll('pre code').forEach((el) => {
+            hljs.highlightElement(el);
+        });
         
-        const query = document.getElementById('queryInput').value.trim();
-        if (!query) {
-            alert('Please enter a query');
-            return;
+        $('#query-form').on('submit', function(e) {
+            e.preventDefault();
+            
+            $.ajax({
+                type: 'POST',
+                url: '{% url "ragui:index" %}',
+                data: $(this).serialize(),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(data) {
+                    if ($('.response-content').length === 0) {
+                        const responseHtml = createResponseHtml(data);
+                        $(responseHtml).insertAfter('.row:first');
+                    } else {
+                        updateResponseContent(data);
+                    }
+
+                    document.querySelectorAll('pre code').forEach((el) => {
+                        hljs.highlightElement(el);
+                    });
+
+                    updateSourceNodes(data);
+                },
+                error: function(xhr, status, error) {
+                    alert('Error processing query: ' + error);
+                }
+            });
+        });
+        
+        function createResponseHtml(data) {
+            let debugHtml = '';
+            
+            if (data.debug_info.query_type === 'SQL') {
+                debugHtml = `
+                    <div class="alert alert-info">
+                        <strong>Query Type:</strong> SQL
+                    </div>
+                    <div class="mb-3">
+                        <strong>Explanation:</strong>
+                        <p>${data.debug_info.explanation}</p>
+                    </div>
+                    <div class="mb-3">
+                        <strong>SQL Query:</strong>
+                        <pre><code class="language-sql">${data.debug_info.sql_query}</code></pre>
+                    </div>
+                    <div class="mb-3">
+                        <strong>SQL Response:</strong>
+                        <div class="sql-response">
+                            ${data.debug_info.sql_response.replace(/\n/g, '<br>')}
+                        </div>
+                    </div>
+                `;
+            } else if (data.debug_info.query_type === 'Vector') {
+                debugHtml = `
+                    <div class="alert alert-info">
+                        <strong>Query Type:</strong> Vector
+                    </div>
+                    <div class="mb-3">
+                        <strong>Explanation:</strong>
+                        <p>${data.debug_info.explanation}</p>
+                    </div>
+                `;
+            }
+            
+            debugHtml += `
+                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#fullDebugInfo">
+                    Show Full Debug Output
+                </button>
+                <div class="collapse mt-3" id="fullDebugInfo">
+                    <div class="card card-body">
+                        <pre>${data.debug_info.full_debug}</pre>
+                    </div>
+                </div>
+            `;
+            
+            return `
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Query Response</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-7">
+                                    <div class="response-content">
+                                        ${data.response}
+                                    </div>
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="debug-info">
+                                        ${debugHtml}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `;
         }
         
-        // Show loading spinner
-        document.getElementById('loadingSpinner').style.display = 'block';
-        document.getElementById('responseCard').style.display = 'none';
-        
-        // Send AJAX request
-        const formData = new FormData();
-        formData.append('query', query);
-        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-        
-        fetch('{% url "query_rag" %}', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
+        function updateResponseContent(data) {
+            $('.response-content').html(data.response);
+
+            const $debugInfo = $('.debug-info');
+            if (data.debug_info.query_type === 'SQL') {
+                $debugInfo.html(`
+                    <div class="alert alert-info">
+                        <strong>Query Type:</strong> SQL
+                    </div>
+                    <div class="mb-3">
+                        <strong>Explanation:</strong>
+                        <p>${data.debug_info.explanation}</p>
+                    </div>
+                    <div class="mb-3">
+                        <strong>SQL Query:</strong>
+                        <pre><code class="language-sql">${data.debug_info.sql_query}</code></pre>
+                    </div>
+                    <div class="mb-3">
+                        <strong>SQL Response:</strong>
+                        <div class="sql-response">
+                            ${data.debug_info.sql_response.replace(/\n/g, '<br>')}
+                        </div>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#fullDebugInfo">
+                        Show Full Debug Output
+                    </button>
+                    <div class="collapse mt-3" id="fullDebugInfo">
+                        <div class="card card-body">
+                            <pre>${data.debug_info.full_debug}</pre>
+                        </div>
+                    </div>
+                `);
+            } else if (data.debug_info.query_type === 'Vector') {
+                $debugInfo.html(`
+                    <div class="alert alert-info">
+                        <strong>Query Type:</strong> Vector
+                    </div>
+                    <div class="mb-3">
+                        <strong>Explanation:</strong>
+                        <p>${data.debug_info.explanation}</p>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#fullDebugInfo">
+                        Show Full Debug Output
+                    </button>
+                    <div class="collapse mt-3" id="fullDebugInfo">
+                        <div class="card card-body">
+                            <pre>${data.debug_info.full_debug}</pre>
+                        </div>
+                    </div>
+                `);
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            // Hide loading spinner
-            document.getElementById('loadingSpinner').style.display = 'none';
-            
-            // Show response
-            document.getElementById('responseCard').style.display = 'block';
-            
-            if (data.success) {
-                // Use a markdown parser library to render markdown
-                // For simplicity, we're just setting the HTML directly here
-                document.getElementById('responseContent').innerHTML = data.response;
-            } else {
-                document.getElementById('responseContent').innerHTML = 
-                    `<div class="alert alert-danger">Error: ${data.error}</div>`;
+        }
+        
+        function updateSourceNodes(data) {
+            if (data.source_nodes && data.source_nodes.length > 0) {
+                $('.source-nodes-card').remove();
+
+                const $sourceNodesCard = $('<div class="row mt-4 source-nodes-card">')
+                    .append($('<div class="col-md-12">')
+                        .append($('<div class="card">')
+                            .append($('<div class="card-header">')
+                                .append($('<h5>').text('Source Nodes')))
+                            .append($('<div class="card-body source-nodes-container">'))));
+
+                data.source_nodes.forEach(function(node) {
+                    $('.source-nodes-container', $sourceNodesCard)
+                        .append($('<div class="source-node mb-3 p-3 border rounded">').html(node));
+                });
+                
+                $sourceNodesCard.insertAfter('.row:nth-child(2)');
             }
-        })
-        .catch(error => {
-            // Hide loading spinner
-            document.getElementById('loadingSpinner').style.display = 'none';
-            
-            // Show error
-            document.getElementById('responseCard').style.display = 'block';
-            document.getElementById('responseContent').innerHTML = 
-                `<div class="alert alert-danger">Error: ${error.message}</div>`;
-        });
+        }
     });
 </script>
 {% endblock %}

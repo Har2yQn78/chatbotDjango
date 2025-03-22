@@ -1,7 +1,9 @@
 from django.urls import path
 from . import views
 
+app_name = 'ragui'
+
 urlpatterns = [
-    path('ragui/', views.rag_ui, name='rag_ui'),
-    path('query-rag/', views.query_rag, name='query_rag'),  
+    path('', views.IndexView.as_view(), name='index'),
+    path('top-posts/', views.TopPostsView.as_view(), name='top_posts'),
 ]
