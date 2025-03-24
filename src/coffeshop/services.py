@@ -39,11 +39,7 @@ def search_posts(query, limit=5):
     return qs
 
 
-# Coffee Shop Services
 def search_products_by_text(query, limit=10):
-    """
-    Search products using vector similarity with MistralAI embeddings.
-    """
     Product = apps.get_model(app_label='data', model_name='Product')
     query_embedding = get_query_embedding(query)
     
@@ -56,9 +52,6 @@ def search_products_by_text(query, limit=10):
 
 
 def search_inventory_by_text(query, limit=10):
-    """
-    Search inventory items using vector similarity with MistralAI embeddings.
-    """
     InventoryItem = apps.get_model(app_label='data', model_name='InventoryItem')
     query_embedding = get_query_embedding(query)
     
@@ -71,9 +64,6 @@ def search_inventory_by_text(query, limit=10):
 
 
 def search_employees_by_text(query, limit=10):
-    """
-    Search employees using vector similarity with MistralAI embeddings.
-    """
     Employee = apps.get_model(app_label='data', model_name='Employee')
     query_embedding = get_query_embedding(query)
     
@@ -86,9 +76,6 @@ def search_employees_by_text(query, limit=10):
 
 
 def get_low_inventory_items():
-    """
-    Get inventory items that are below reorder level.
-    """
     InventoryItem = apps.get_model(app_label='data', model_name='InventoryItem')
     
     items = InventoryItem.objects.filter(
@@ -99,9 +86,6 @@ def get_low_inventory_items():
 
 
 def check_product_availability(product_id):
-    """
-    Check if a product can be made based on current inventory.
-    """
     Product = apps.get_model(app_label='data', model_name='Product')
     ProductInventoryRequirement = apps.get_model(app_label='data', model_name='ProductInventoryRequirement')
     
@@ -132,9 +116,6 @@ def check_product_availability(product_id):
 
 
 def get_products_by_type(product_type_id):
-    """
-    Get all products of a specific product type.
-    """
     Product = apps.get_model(app_label='data', model_name='Product')
     
     products = Product.objects.filter(
@@ -146,18 +127,12 @@ def get_products_by_type(product_type_id):
 
 
 def get_all_product_types():
-    """
-    Get all product types for dropdown menus.
-    """
     ProductType = apps.get_model(app_label='data', model_name='ProductType')
     
     return ProductType.objects.all().order_by('name')
 
 
 def get_employee_by_role(role_id):
-    """
-    Get all employees with a specific role.
-    """
     Employee = apps.get_model(app_label='data', model_name='Employee')
     
     employees = Employee.objects.filter(

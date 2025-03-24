@@ -33,9 +33,6 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'data',
-    'analytics',
-    'products',
     'ragui',
     'coffeshop',
     'django.contrib.admin',
