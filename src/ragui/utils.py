@@ -16,35 +16,17 @@ def initialize_rag():
     rag_sync.full_sync()
 
 def get_query_engine():
-    product_query_engine = rag_engines.get_semantic_query_engine("Product")
-    employee_query_engine = rag_engines.get_semantic_query_engine("Employee")
-    inventory_query_engine = rag_engines.get_semantic_query_engine("InventoryItem")
-    ProductType_query_engine = rag_engines.get_semantic_query_engine("ProductType")
     sql_query_engine = rag_engines.get_sql_query_engine()
+    semantic_query_engine = rag_engines.get_semantic_query_engine("Product")
 
-    product_tool = QueryEngineTool.from_defaults(
-        query_engine=product_query_engine,
-        description=(
-            "Useful for answering semantic questions about coffee shop products, "
-            "including ingredients, pricing, and availability"
-        ),
-    )
 
-    employee_tool = QueryEngineTool.from_defaults(
-        query_engine=employee_query_engine,
-        description=(
-             "Useful for questions about staff members, their roles, schedules, "
-            "or employment details"
-        ),
-    )
-
-    inventory_tool = QueryEngineTool.from_defaults(
-        query_engine=inventory_query_engine,
-        description=(
-             "Useful for questions about stock levels, inventory items, "
-            "or supply requirements"
-        ),
-    )
+    vector_tool = QueryEngineTool.from_defaults(
+    query_engine=semantic_query_engine,
+    description=(
+        "Useful for answering semantic questions about coffee shop operations, "
+        "including products, employees, inventory, and recipes"
+    ),
+)
 
     
     sql_tool = QueryEngineTool.from_defaults(
@@ -57,9 +39,7 @@ def get_query_engine():
     
     return rag_patches.MySQLAutoVectorQueryEngine(
         sql_tool,
-        product_tool,
-        employee_tool,
-        inventory_tool,
+        vector_tool,
     )
 
 def process_query(query_engine, query_text):
