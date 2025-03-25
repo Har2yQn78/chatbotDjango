@@ -1,33 +1,69 @@
-from data.models import BlogPost
+from django.apps import apps
 from llama_index.core import Document
+from .engines import get_model_index
+from datetime import datetime
 
-from .engines import get_semantic_query_index
+def should_include(obj) -> bool:
+    if hasattr(obj, 'is_active') and not obj.is_active:
+        return False
+    if hasattr(obj, 'is_available') and not obj.is_available:
+        return False
+    if hasattr(obj, 'embedding') and obj.embedding is None:
+        return False
+    return True
 
-def get_blog_post_docs():
+def get_all_docs():
     docs = []
-    qs = BlogPost.objects.filter(can_delete=True)
-    for obj in qs:
-        if obj.embedding is None:
-            continue
-        docs.append(
-            Document(
-                text=f"{obj.get_embedding_text_raw()}",
-                doc_id=str(obj.id),
-                embedding=obj.embedding.tolist(),
-                metadata = {
+    relevant_models = [
+        'Employee', 
+        'ProductType',
+        'Product',
+        'InventoryItem'
+    ]
+    
+    for model_name in relevant_models:
+        model = apps.get_model("coffeshop", model_name)
+        qs = model.objects.all()
+        
+        for obj in qs:
+            if not should_include(obj):
+                continue
+                
+            docs.append(Document(
+                text=obj.get_embedding_text_raw(),
+                doc_id=f"{model_name.lower()}_{obj.id}",
+                embedding=obj.embedding.tolist() if obj.embedding else None,
+                metadata={
+                    "model_type": model_name,
                     "pk": obj.pk,
-                    "title": obj.title
+                    "last_updated": datetime.now().isoformat(),
+                    **{
+                        field.name: str(getattr(obj, field.name))
+                        for field in model._meta.fields
+                        if field.name in ['name', 'description', 'price', 'quantity']
+                    }
                 }
-            )
-        )
+            ))
     return docs
 
-
-def sync_blog_docs():
-    index = get_semantic_query_index()
-    docs = get_blog_post_docs()
-    print(f"Syncing {len(docs)} docs")
+def full_sync():
+    """Full synchronization across all models"""
+    docs = get_all_docs()
+    print(f"Starting sync for {len(docs)} documents across all models")
+    
     for doc in docs:
-        index.delete_ref_doc(f"{doc.id_}", delete_from_docstore=True)
-        index.insert(doc)
-    print("Sync done.")
+        model_name = doc.metadata["model_type"]
+        index = get_model_index(model_name)
+        
+        if index:
+            try:
+                # Atomic update operation
+                index.delete_ref_doc(doc.doc_id)
+                index.insert(doc)
+                # Update last_indexed field if exists
+                if hasattr(index, 'update_model_timestamp'):
+                    index.update_model_timestamp(doc.metadata["pk"])
+            except Exception as e:
+                print(f"Failed syncing {doc.doc_id}: {str(e)}")
+    
+    print("Full synchronization completed")

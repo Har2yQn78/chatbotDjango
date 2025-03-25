@@ -10,78 +10,64 @@ from llama_index.core.retrievers import NLSQLRetriever
 
 from . import db, settings, prompts
 
-EMEDDING_LENGTH = settings.EMEDDING_LENGTH
+EMBEDDING_LENGTH = settings.EMBEDDING_LENGTH  # Fixed typo
 
 settings.init()
 
-def get_vector_store(
-        vector_db_name=settings.VECTOR_DB_NAME, vector_db_table_name=settings.VECTOR_DB_TABLE_NAME
-    ):
+def get_vector_store(model_name: str):
+    """Get vector store for a specific model"""
     db_url = db.get_database_url(use_pooling=True)
     url = make_url(db_url)
+    
+    # Get table name from model naming convention
+    table_name = f"{model_name.lower()}s"
+    
     return PGVectorStore.from_params(
-        database=vector_db_name,
+        database=settings.VECTOR_DB_NAME,
         host=url.host,
         password=url.password,
         port=url.port or 5432,
         user=url.username,
-        table_name=vector_db_table_name,
-        embed_dim=EMEDDING_LENGTH,
+        table_name=table_name,
+        embed_dim=EMBEDDING_LENGTH,
     )
 
-def get_semantic_query_index():
-    vector_store = get_vector_store()
+def get_model_index(model_name: str):
+    """Get index for specific model"""
+    vector_store = get_vector_store(model_name)
     storage_context = StorageContext.from_defaults(vector_store=vector_store)
     return VectorStoreIndex.from_vector_store(vector_store, storage_context=storage_context)
 
-def get_semantic_query_retriever_engine(top_k=5):
-    index = get_semantic_query_index()
-    retriever = index.as_retriever(similarity_top_k=top_k)
-    retriever.retrieve_mode = 'embedding'
-    return RetrieverQueryEngine.from_args(
-        retriever
-    )
-
-def get_semantic_query_engine():
-    index = get_semantic_query_index()
+def get_semantic_query_engine(model_name: str):
+    """Get query engine for specific model"""
+    index = get_model_index(model_name)
     return index.as_query_engine()
 
-
 def get_default_sql_engine_tables() -> List[str]:
-    BlogPost = apps.get_model("data", "BlogPost")
-    PageView = apps.get_model("analytics", "PageView")
-    EmployeeRole = apps.get_model("coffeshop", "EmployeeRole")
-    Employee = apps.get_model("coffeshop", "Employee")
-    ProductType = apps.get_model("coffeshop", "ProductType")
-    Product = apps.get_model("coffeshop", "Product")
-    InventoryItem = apps.get_model("coffeshop", "InventoryItem")
-    ProductInventoryRequirement = apps.get_model("coffeshop", "ProductInventoryRequirement")
-    tables = []
-    models = [BlogPost, PageView, EmployeeRole, Employee, ProductType,
-     Product, InventoryItem, ProductInventoryRequirement]
-    for model in models:
-        table = model._meta.db_table
-        tables.append(table)
-    return tables
-
+    """Get relevant coffee shop tables for SQL engine"""
+    models = [
+        apps.get_model("coffeshop", "EmployeeRole"),
+        apps.get_model("coffeshop", "Employee"),
+        apps.get_model("coffeshop", "ProductType"),
+        apps.get_model("coffeshop", "Product"),
+        apps.get_model("coffeshop", "InventoryItem"),
+        apps.get_model("coffeshop", "ProductInventoryRequirement")
+    ]
+    return [model._meta.db_table for model in models]
 
 def get_llamaindex_sql_database() -> SQLDatabase:
-    """
-    Using django database 
-    Not using the LlamaIndex Vector db like
-    `get_vector_store`
-    """
+    """Create SQLDatabase instance for coffee shop models"""
     tables = get_default_sql_engine_tables()
     database_url = db.get_database_url(use_pooling=True)
     engine = create_engine(database_url)
     return SQLDatabase(engine, include_tables=tables)
 
 def get_sql_query_engine(*args, **kwargs) -> NLSQLTableQueryEngine:
-    tables = get_default_sql_engine_tables()
+    """Create SQL query engine with coffee shop context"""
     sql_database = get_llamaindex_sql_database()
     config = {
         "sql_database": sql_database,
-        "tables": tables,
+        "tables": get_default_sql_engine_tables(),
         "response_synthesis_prompt": prompts.custom_sql_response_synthesis_prompt,
         "text_to_sql_prompt": prompts.custom_text_to_sql_prompt
     }
@@ -89,11 +75,11 @@ def get_sql_query_engine(*args, **kwargs) -> NLSQLTableQueryEngine:
     return NLSQLTableQueryEngine(*args, **config)
 
 def get_sql_query_retriever(*args, **kwargs) -> NLSQLRetriever:
-    tables = get_default_sql_engine_tables()
+    """Create SQL retriever for coffee shop data"""
     sql_database = get_llamaindex_sql_database()
     config = {
         "sql_database": sql_database,
-        "tables": tables,
+        "tables": get_default_sql_engine_tables(),
         "response_synthesis_prompt": prompts.custom_sql_response_synthesis_prompt,
         "text_to_sql_prompt": prompts.custom_text_to_sql_prompt
     }
