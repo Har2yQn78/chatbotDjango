@@ -8,31 +8,36 @@ def should_include(obj) -> bool:
         return False
     if hasattr(obj, 'is_available') and not obj.is_available:
         return False
-    if hasattr(obj, 'embedding') and obj.embedding is None:
-        return False
+    if hasattr(obj, 'embedding'):
+        if obj.embedding is None or len(obj.embedding) == 0:
+            return False
     return True
 
+
+relevant_models = [
+    'Employee', 
+    'ProductType',
+    'Product',
+    'InventoryItem'  
+]
+metadata_fields = {
+    'Employee': ['name', 'role', 'hire_date', 'hourly_rate'],
+    'ProductType': ['name', 'description'],
+    'Product': ['name', 'price', 'description'],
+    'InventoryItem': ['name', 'quantity', 'unit']
+}
 def get_all_docs():
     docs = []
-    relevant_models = [
-        'Employee', 
-        'ProductType',
-        'Product',
-        'InventoryItem'
-    ]
-    
     for model_name in relevant_models:
         model = apps.get_model("coffeshop", model_name)
         qs = model.objects.all()
-        
         for obj in qs:
             if not should_include(obj):
-                continue
-                
+                continue     
             docs.append(Document(
                 text=obj.get_embedding_text_raw(),
                 doc_id=f"{model_name.lower()}_{obj.id}",
-                embedding=obj.embedding.tolist() if obj.embedding else None,
+                embedding=obj.embedding.tolist() if obj.embedding is not None else None,
                 metadata={
                     "model_type": model_name,
                     "pk": obj.pk,
@@ -40,7 +45,7 @@ def get_all_docs():
                     **{
                         field.name: str(getattr(obj, field.name))
                         for field in model._meta.fields
-                        if field.name in ['name', 'description', 'price', 'quantity']
+                        if field.name in metadata_fields[model_name]
                     }
                 }
             ))
@@ -57,10 +62,8 @@ def full_sync():
         
         if index:
             try:
-                # Atomic update operation
                 index.delete_ref_doc(doc.doc_id)
                 index.insert(doc)
-                # Update last_indexed field if exists
                 if hasattr(index, 'update_model_timestamp'):
                     index.update_model_timestamp(doc.metadata["pk"])
             except Exception as e:

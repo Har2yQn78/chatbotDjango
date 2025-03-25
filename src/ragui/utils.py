@@ -3,6 +3,7 @@ from rag import (
     engines as rag_engines,
     settings as rag_settings,
     updaters as rag_updaters,
+    sync as rag_sync, 
     patches as rag_patches,
 )
 from llama_index.core.tools import QueryEngineTool
@@ -12,31 +13,53 @@ import sys
 def initialize_rag():
     rag_settings.init()
     rag_db.init_vector_db()
-    rag_updaters.update_llama_index_documents(use_saved_embeddings=True)
+    rag_sync.full_sync()
 
 def get_query_engine():
-    vector_index = rag_engines.get_semantic_query_index()
-    semantic_query_retriever = rag_engines.get_semantic_query_retriever_engine()
+    product_query_engine = rag_engines.get_semantic_query_engine("Product")
+    employee_query_engine = rag_engines.get_semantic_query_engine("Employee")
+    inventory_query_engine = rag_engines.get_semantic_query_engine("InventoryItem")
+    ProductType_query_engine = rag_engines.get_semantic_query_engine("ProductType")
     sql_query_engine = rag_engines.get_sql_query_engine()
 
-    vector_tool = QueryEngineTool.from_defaults(
-        query_engine=semantic_query_retriever,
+    product_tool = QueryEngineTool.from_defaults(
+        query_engine=product_query_engine,
         description=(
-            f"Useful for answering semantic questions about different blog posts"
+            "Useful for answering semantic questions about coffee shop products, "
+            "including ingredients, pricing, and availability"
         ),
     )
+
+    employee_tool = QueryEngineTool.from_defaults(
+        query_engine=employee_query_engine,
+        description=(
+             "Useful for questions about staff members, their roles, schedules, "
+            "or employment details"
+        ),
+    )
+
+    inventory_tool = QueryEngineTool.from_defaults(
+        query_engine=inventory_query_engine,
+        description=(
+             "Useful for questions about stock levels, inventory items, "
+            "or supply requirements"
+        ),
+    )
+
     
     sql_tool = QueryEngineTool.from_defaults(
         query_engine=sql_query_engine,
         description=(
-            "Useful for translating a natural language query into a SQL query over"
-            " a table containing: blog posts and page views each blog post"
+            "Useful for translating natural language queries into SQL over tables containing: "
+            "EmployeeRole, Employee, ProductType, Product, InventoryItem, ProductInventoryRequirement"
         ),
     )
     
     return rag_patches.MySQLAutoVectorQueryEngine(
         sql_tool,
-        vector_tool,
+        product_tool,
+        employee_tool,
+        inventory_tool,
     )
 
 def process_query(query_engine, query_text):

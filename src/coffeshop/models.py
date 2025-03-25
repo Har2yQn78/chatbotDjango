@@ -64,6 +64,7 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=6, decimal_places=2)
     description = models.TextField(blank=True, null=True)
     is_available = models.BooleanField(default=True)
+    last_indexed = models.DateTimeField(null=True, blank=True)
     embedding = VectorField(dimensions=EMEDDING_LENGTH, blank=True, null=True)
     
     def save(self, *args, **kwargs):
