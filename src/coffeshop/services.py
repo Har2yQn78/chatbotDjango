@@ -29,18 +29,9 @@ def get_query_embedding(text):
     return get_embedding(text)
 
 
-def search_posts(query, limit=5):
-    BlogPost = apps.get_model(app_label='data', model_name='BlogPost')
-    query_embedding = get_query_embedding(query)
-    qs = BlogPost.objects.annotate(
-        distance=CosineDistance('embedding', query_embedding),
-        similarity=1 - F("distance")
-        ).order_by("distance")[:limit]
-    return qs
-
 
 def search_products_by_text(query, limit=10):
-    Product = apps.get_model(app_label='data', model_name='Product')
+    Product = apps.get_model(app_label='coffeshop', model_name='Product')
     query_embedding = get_query_embedding(query)
     
     products = Product.objects.annotate(
@@ -52,7 +43,7 @@ def search_products_by_text(query, limit=10):
 
 
 def search_inventory_by_text(query, limit=10):
-    InventoryItem = apps.get_model(app_label='data', model_name='InventoryItem')
+    InventoryItem = apps.get_model(app_label='coffeshop', model_name='InventoryItem')
     query_embedding = get_query_embedding(query)
     
     items = InventoryItem.objects.annotate(
@@ -64,7 +55,7 @@ def search_inventory_by_text(query, limit=10):
 
 
 def search_employees_by_text(query, limit=10):
-    Employee = apps.get_model(app_label='data', model_name='Employee')
+    Employee = apps.get_model(app_label='coffeshop', model_name='Employee')
     query_embedding = get_query_embedding(query)
     
     employees = Employee.objects.annotate(
@@ -76,7 +67,7 @@ def search_employees_by_text(query, limit=10):
 
 
 def get_low_inventory_items():
-    InventoryItem = apps.get_model(app_label='data', model_name='InventoryItem')
+    InventoryItem = apps.get_model(app_label='coffeshop', model_name='InventoryItem')
     
     items = InventoryItem.objects.filter(
         quantity__lt=F('reorder_level')
@@ -86,8 +77,8 @@ def get_low_inventory_items():
 
 
 def check_product_availability(product_id):
-    Product = apps.get_model(app_label='data', model_name='Product')
-    ProductInventoryRequirement = apps.get_model(app_label='data', model_name='ProductInventoryRequirement')
+    Product = apps.get_model(app_label='coffeshop', model_name='Product')
+    ProductInventoryRequirement = apps.get_model(app_label='coffeshop', model_name='ProductInventoryRequirement')
     
     try:
         product = Product.objects.get(id=product_id)
@@ -116,7 +107,7 @@ def check_product_availability(product_id):
 
 
 def get_products_by_type(product_type_id):
-    Product = apps.get_model(app_label='data', model_name='Product')
+    Product = apps.get_model(app_label='coffeshop', model_name='Product')
     
     products = Product.objects.filter(
         product_type_id=product_type_id,
@@ -127,13 +118,13 @@ def get_products_by_type(product_type_id):
 
 
 def get_all_product_types():
-    ProductType = apps.get_model(app_label='data', model_name='ProductType')
+    ProductType = apps.get_model(app_label='coffeshop', model_name='ProductType')
     
     return ProductType.objects.all().order_by('name')
 
 
 def get_employee_by_role(role_id):
-    Employee = apps.get_model(app_label='data', model_name='Employee')
+    Employee = apps.get_model(app_label='coffeshop', model_name='Employee')
     
     employees = Employee.objects.filter(
         role_id=role_id,
