@@ -1,0 +1,67 @@
+{% extends 'coffeshop/base.html' %}
+
+{% block title %}Coffee Shop - Home{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-5">
+        <div class="col-md-8 offset-md-2 text-center">
+            <h1 class="display-4 mb-4">Welcome to Coffee Shop Management</h1>
+            <p class="lead">A comprehensive solution for managing your coffee shop operations.</p>
+        </div>
+    </div>
+    
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-mug-hot me-2"></i>Products</h5>
+                </div>
+                <div class="card-body">
+                    <h3 class="display-4 text-center">{{ product_count }}</h3>
+                    <p class="text-center">Available Products</p>
+                    <div class="text-center mt-4">
+                        <a href="{% url 'coffeshop:product_list' %}" class="btn btn-outline-primary">
+                            View Products
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-users me-2"></i>Staff</h5>
+                </div>
+                <div class="card-body">
+                    <h3 class="display-4 text-center">{{ employee_count }}</h3>
+                    <p class="text-center">Active Employees</p>
+                    <div class="text-center mt-4">
+                        <a href="{% url 'coffeshop:employee_list' %}" class="btn btn-outline-primary">
+                            View Employees
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Inventory Alerts</h5>
+                </div>
+                <div class="card-body">
+                    <h3 class="display-4 text-center">{{ inventory_low }}</h3>
+                    <p class="text-center">Items Low in Stock</p>
+                    <div class="text-center mt-4">
+                        <a href="{% url 'coffeshop:inventory_list' %}" class="btn btn-outline-primary">
+                            Check Inventory
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

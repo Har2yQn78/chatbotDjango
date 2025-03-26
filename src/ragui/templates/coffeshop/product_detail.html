@@ -1,0 +1,99 @@
+{% extends 'coffeshop/base.html' %}
+
+{% block title %}{{ product.name }} - Details{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'coffeshop:index' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'coffeshop:product_list' %}">Products</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+        </ol>
+    </nav>
+    
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">{{ product.name }}</h2>
+            {% if product.is_available %}
+            <span class="badge bg-success">Available</span>
+            {% else %}
+            <span class="badge bg-danger">Unavailable</span>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <h5 class="card-title">Product Details</h5>
+                    <p><strong>Type:</strong> {{ product.product_type.name }}</p>
+                    <p><strong>Price:</strong> ${{ product.price }}</p>
+                    {% if product.description %}
+                    <p><strong>Description:</strong> {{ product.description }}</p>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 text-center">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Price</h5>
+                            <h2 class="display-4">${{ product.price }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Inventory Requirements -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Inventory Requirements</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Inventory Item</th>
+                            <th>Quantity Required</th>
+                            <th>Current Stock</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in requirements %}
+                        <tr>
+                            <td>{{ req.inventory_item.name }}</td>
+                            <td>{{ req.quantity_required }} {{ req.inventory_item.unit }}</td>
+                            <td>{{ req.inventory_item.quantity }} {{ req.inventory_item.unit }}</td>
+                            <td>
+                                {% if req.inventory_item.quantity < req.quantity_required %}
+                                <span class="status-out-of-stock"><i class="fas fa-times-circle me-1"></i>Insufficient</span>
+                                {% else %}
+                                <span class="status-in-stock"><i class="fas fa-check-circle me-1"></i>Sufficient</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4">No inventory requirements defined for this product.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="mt-4 d-flex justify-content-between">
+        <a href="{% url 'coffeshop:product_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Products
+        </a>
+        <div>
+            <a href="/admin/coffeshop/product/{{ product.id }}/change/" class="btn btn-primary">
+                <i class="fas fa-edit me-2"></i>Edit Product
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
