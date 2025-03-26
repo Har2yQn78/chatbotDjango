@@ -5,33 +5,160 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}RAG UI{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     {% load static %}
     <link rel="stylesheet" href="{% static 'ragui/css/style.css' %}">
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'ragui:index' %}">RAG UI</a>
+            <a class="navbar-brand" href="{% url 'ragui:index' %}">Talk2SQL</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
+                <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'ragui:index' %}">Home</a>
                     </li>
                 </ul>
+                <div class="d-flex">
+                    <button id="syncButton" type="button" class="btn btn-outline-info rounded-pill px-4 py-2">
+                        <i class="bi bi-arrow-repeat me-2"></i>Sync Data
+                    </button>
+                </div>
             </div>
         </div>
     </nav>
 
     <div class="container mt-4">
+        {% if sync_message %}
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            {{ sync_message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
         {% block content %}{% endblock %}
     </div>
+
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Talk2SQL</h5>
+                    <p>A RAG-powered SQL assistant</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>&copy; {% now "Y" %} Talk2SQL. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     {% block extra_js %}{% endblock %}
     <script src="{% static 'ragui/js/main.js' %}"></script>
+    <script>
+        document.getElementById('syncButton').addEventListener('click', function() {
+            const originalText = this.innerHTML;
+            this.disabled = true;
+            this.innerHTML = '<i class="bi bi-arrow-repeat me-2 spin"></i>Syncing...';
+            
+            const formData = new FormData();
+            formData.append('sync_rag', 'true');
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+            
+            fetch('{% url "ragui:index" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const toastContainer = document.createElement('div');
+                toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
+                toastContainer.style.zIndex = '11';
+                
+                const toastElement = document.createElement('div');
+                toastElement.className = `toast align-items-center ${data.success ? 'text-bg-success' : 'text-bg-danger'}`;
+                toastElement.setAttribute('role', 'alert');
+                toastElement.setAttribute('aria-live', 'assertive');
+                toastElement.setAttribute('aria-atomic', 'true');
+                
+                toastElement.innerHTML = `
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            ${data.message}
+                        </div>
+                        <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                `;
+                
+                toastContainer.appendChild(toastElement);
+                document.body.appendChild(toastContainer);
+                
+                const toast = new bootstrap.Toast(toastElement);
+                toast.show();
+
+                this.disabled = false;
+                this.innerHTML = originalText;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+
+                const toastContainer = document.createElement('div');
+                toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
+                toastContainer.style.zIndex = '11';
+                
+                const toastElement = document.createElement('div');
+                toastElement.className = 'toast align-items-center text-bg-danger';
+                toastElement.setAttribute('role', 'alert');
+                toastElement.setAttribute('aria-live', 'assertive');
+                toastElement.setAttribute('aria-atomic', 'true');
+                
+                toastElement.innerHTML = `
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            An error occurred during sync
+                        </div>
+                        <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                `;
+                
+                toastContainer.appendChild(toastElement);
+                document.body.appendChild(toastContainer);
+                
+                const toast = new bootstrap.Toast(toastElement);
+                toast.show();
+
+                this.disabled = false;
+                this.innerHTML = originalText;
+            });
+        });
+    </script>
+    <style>
+        .spin {
+            animation: spinner 1s linear infinite;
+        }
+        
+        @keyframes spinner {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        #syncButton:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        #syncButton {
+            transition: all 0.3s ease;
+        }
+    </style>
 </body>
 </html>

@@ -3,7 +3,7 @@ from django.views.generic import FormView
 from django.http import JsonResponse
 from .forms import QueryForm
 from .utils import get_query_engine, process_query
-from .rag_initializer import ensure_rag_initialized
+from .rag_initializer import ensure_rag_initialized, RAGInitializer
 
 class IndexView(FormView):
     template_name = 'ragui/index.html'
@@ -42,3 +42,18 @@ class IndexView(FormView):
                 'form': form,
                 'error': error_message
             })
+    
+    def post(self, request, *args, **kwargs):
+        if 'sync_rag' in request.POST:
+            success = RAGInitializer.perform_sync()
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': success,
+                    'message': 'Sync completed successfully' if success else 'Sync failed'
+                })
+            return render(request, self.template_name, {
+                'form': self.get_form(),
+                'sync_message': 'Sync completed successfully' if success else 'Sync failed'
+            })
+
+        return super().post(request, *args, **kwargs)
