@@ -20,13 +20,10 @@ def product_list(request):
     """View all products with filtering options."""
     products = Product.objects.all()
     product_types = ProductType.objects.all()
-    
-    # Filter by product type if specified
     product_type_id = request.GET.get('type')
     if product_type_id:
         products = products.filter(product_type_id=product_type_id)
-        
-    # Filter by availability
+
     availability = request.GET.get('available')
     if availability:
         is_available = availability == 'true'
@@ -49,7 +46,6 @@ def product_detail(request, product_id):
     }
     return render(request, 'coffeshop/product_detail.html', context)
 
-# Inventory views
 def inventory_list(request):
     inventory_items = InventoryItem.objects.all()
     in_stock_count = inventory_items.filter(quantity__gt=F('reorder_level')).count()
@@ -76,24 +72,19 @@ def update_inventory(request, item_id):
             item.save()
             return redirect('coffeshop:inventory_list')
         except ValueError:
-            # Handle invalid input
             pass
     
     return redirect('coffeshop:inventory_list')
 
-# Employee views
 @login_required
 def employee_list(request):
     """View all employees with filtering by role."""
     employees = Employee.objects.all()
     roles = EmployeeRole.objects.all()
     
-    # Filter by role if specified
     role_id = request.GET.get('role')
     if role_id:
         employees = employees.filter(role_id=role_id)
-        
-    # Filter by active status
     status = request.GET.get('status')
     if status:
         is_active = status == 'active'
