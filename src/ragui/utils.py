@@ -1,55 +1,60 @@
+import io
+import sys
+import logging
+import traceback
+
 from rag import (
     db as rag_db,
     engines as rag_engines,
     settings as rag_settings,
-    updaters as rag_updaters,
     sync as rag_sync, 
     patches as rag_patches,
 )
 from llama_index.core.tools import QueryEngineTool
-import io
-import sys
 
-def initialize_rag():
-    rag_settings.init()
-    rag_db.init_vector_db()
-    rag_sync.full_sync()
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 def get_query_engine():
-    sql_query_engine = rag_engines.get_sql_query_engine()
-    semantic_query_engine = rag_engines.get_semantic_query_engine("Product")
+    try:
+        sql_query_engine = rag_engines.get_sql_query_engine()
+        semantic_query_engine = rag_engines.get_semantic_query_engine("Product")
+        vector_tool = QueryEngineTool.from_defaults(
+            query_engine=semantic_query_engine,
+            description=(
+                "Useful for answering semantic questions about coffee shop operations, "
+                "including products, employees, inventory, and recipes"
+            ),
+        )
+        
+        sql_tool = QueryEngineTool.from_defaults(
+            query_engine=sql_query_engine,
+            description=(
+                "Useful for translating natural language queries into SQL over tables containing: "
+                "EmployeeRole, Employee, ProductType, Product, InventoryItem, ProductInventoryRequirement"
+            ),
+        )
 
-
-    vector_tool = QueryEngineTool.from_defaults(
-    query_engine=semantic_query_engine,
-    description=(
-        "Useful for answering semantic questions about coffee shop operations, "
-        "including products, employees, inventory, and recipes"
-    ),
-)
-
-    
-    sql_tool = QueryEngineTool.from_defaults(
-        query_engine=sql_query_engine,
-        description=(
-            "Useful for translating natural language queries into SQL over tables containing: "
-            "EmployeeRole, Employee, ProductType, Product, InventoryItem, ProductInventoryRequirement"
-        ),
-    )
-    
-    return rag_patches.MySQLAutoVectorQueryEngine(
-        sql_tool,
-        vector_tool,
-    )
+        return rag_patches.MySQLAutoVectorQueryEngine(
+            sql_tool,
+            vector_tool,
+        )
+    except Exception as e:
+        logger.error(f"Failed to get query engine: {e}")
+        logger.error(traceback.format_exc())
+        raise
 
 def process_query(query_engine, query_text):
-    old_stdout = sys.stdout
-    mystdout = io.StringIO()
-    sys.stdout = mystdout
-    
     try:
-        response = query_engine.query(query_text)
-        debug_output = mystdout.getvalue()
+        old_stdout = sys.stdout
+        mystdout = io.StringIO()
+        sys.stdout = mystdout
+        
+        try:
+            response = query_engine.query(query_text)
+            debug_output = mystdout.getvalue()
+        finally:
+            sys.stdout = old_stdout
 
         debug_info = {
             'query_type': 'Unknown',
@@ -65,6 +70,7 @@ def process_query(query_engine, query_text):
             explanation_start = debug_output.find("Querying SQL database:") + len("Querying SQL database:")
             explanation_end = debug_output.find("\n", explanation_start)
             debug_info['explanation'] = debug_output[explanation_start:explanation_end].strip()
+
         elif "Querying other query engine:" in debug_output:
             debug_info['query_type'] = 'Vector'
             explanation_start = debug_output.find("Querying other query engine:") + len("Querying other query engine:")
@@ -86,5 +92,7 @@ def process_query(query_engine, query_text):
             debug_info['sql_response'] = debug_output[sql_response_start:sql_response_end].strip()
         
         return response, debug_info
-    finally:
-        sys.stdout = old_stdout
+    except Exception as e:
+        logger.error(f"Query processing failed: {e}")
+        logger.error(traceback.format_exc())
+        raise

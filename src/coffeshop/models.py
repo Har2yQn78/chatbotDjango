@@ -12,6 +12,17 @@ EMEDDING_LENGTH=services.EMEDDING_LENGTH
 class EmployeeRole(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
+    embedding = VectorField(dimensions=EMEDDING_LENGTH, blank=True, null=True)
+    
+    def save(self, *args, **kwargs):
+        if self.embedding is None:
+            raw_embedding_text = self.get_embedding_text_raw()
+            if raw_embedding_text is not None:
+                self.embedding = services.get_embedding(raw_embedding_text)
+        super().save(*args, **kwargs)
+    
+    def get_embedding_text_raw(self):
+        return f"{self.name} - {self.description or ''}"
     
     def __str__(self):
         return self.name

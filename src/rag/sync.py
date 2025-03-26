@@ -18,13 +18,15 @@ relevant_models = [
     'Employee', 
     'ProductType',
     'Product',
-    'InventoryItem'  
+    'InventoryItem',
+    'EmployeeRole'
 ]
 metadata_fields = {
     'Employee': ['name', 'role', 'hire_date', 'hourly_rate'],
     'ProductType': ['name', 'description'],
     'Product': ['name', 'price', 'description'],
-    'InventoryItem': ['name', 'quantity', 'unit']
+    'InventoryItem': ['name', 'quantity', 'unit'],
+    'EmployeeRole': ['name', 'description'],
 }
 def get_all_docs():
     docs = []
