@@ -1,6 +1,0 @@
-Total Queries: 10
-Success Rate: 90.00%
-
-Error Distribution:
-error
-API error occurred: Status 429\n{"message":"Requests rate limit exceeded"}    1
