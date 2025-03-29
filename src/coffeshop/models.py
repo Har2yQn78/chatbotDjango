@@ -5,8 +5,8 @@ from pgvector.django import VectorField
 
 from . import services
 
-EMBEDDING_MODEL="mistral-embed"
-EMEDDING_LENGTH=services.EMEDDING_LENGTH
+EMBEDDING_MODEL = "mistral-embed"
+EMEDDING_LENGTH = services.EMEDDING_LENGTH
 
 
 class EmployeeRole(models.Model):
@@ -124,3 +124,73 @@ class ProductInventoryRequirement(models.Model):
     
     def __str__(self):
         return f"{self.product.name} requires {self.quantity_required} {self.inventory_item.unit} of {self.inventory_item.name}"
+
+
+# New Models for a More Comprehensive Benchmark
+
+class Customer(models.Model):
+    name = models.CharField(max_length=200)
+    email = models.EmailField(unique=True)
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    embedding = VectorField(dimensions=EMEDDING_LENGTH, blank=True, null=True)
+    
+    def save(self, *args, **kwargs):
+        if self.embedding is None:
+            raw_embedding_text = f"{self.name} - {self.email} - {self.address or ''}"
+            self.embedding = services.get_embedding(raw_embedding_text)
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return self.name
+
+
+class Supplier(models.Model):
+    name = models.CharField(max_length=200)
+    contact_email = models.EmailField(blank=True, null=True)
+    contact_phone = models.CharField(max_length=20, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    embedding = VectorField(dimensions=EMEDDING_LENGTH, blank=True, null=True)
+    
+    def save(self, *args, **kwargs):
+        if self.embedding is None:
+            raw_embedding_text = f"{self.name} - {self.address or ''}"
+            self.embedding = services.get_embedding(raw_embedding_text)
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return self.name
+
+
+class Order(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='orders')
+    order_date = models.DateTimeField(auto_now_add=True)
+    shipping_address = models.TextField()
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    embedding = VectorField(dimensions=EMEDDING_LENGTH, blank=True, null=True)
+    
+    def save(self, *args, **kwargs):
+        if self.embedding is None:
+            raw_embedding_text = f"{self.customer.name} - {self.shipping_address}"
+            self.embedding = services.get_embedding(raw_embedding_text)
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"Order #{self.id} for {self.customer.name}"
+
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    embedding = VectorField(dimensions=EMEDDING_LENGTH, blank=True, null=True)
+    
+    def save(self, *args, **kwargs):
+        if self.embedding is None:
+            raw_embedding_text = f"Order{self.order.id} - {self.product.name} - {self.quantity}"
+            self.embedding = services.get_embedding(raw_embedding_text)
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"Item: {self.product.name} in Order #{self.order.id}"

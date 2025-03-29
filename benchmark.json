@@ -1,0 +1,644 @@
+{
+    "benchmark": [
+      {
+        "id": 1,
+        "question": "نام و نقش تمام کارکنان فعال را نمایش بده.",
+        "sql": "SELECT e.name, er.name AS role_name FROM employee AS e JOIN employee_role AS er ON e.role_id = er.id WHERE e.is_active = TRUE;"
+      },
+      {
+        "id": 2,
+        "question": "لیست تمام محصولات موجود به همراه قیمت آنها را نشان بده.",
+        "sql": "SELECT name, price FROM product WHERE is_available = TRUE;"
+      },
+      {
+        "id": 3,
+        "question": "تمام سفارش‌های مشتری مریم احمدی را برگردان.",
+        "sql": "SELECT o.id, o.order_date, o.shipping_address, o.total_amount FROM \"order\" AS o JOIN customer AS c ON o.customer_id = c.id WHERE c.name = 'مریم احمدی';"
+      },
+      {
+        "id": 4,
+        "question": "آیتم‌های سفارش مربوط به سفارش شماره 1 را نمایش بده.",
+        "sql": "SELECT oi.id, oi.product_id, oi.quantity, oi.price FROM order_item AS oi WHERE oi.order_id = 1;"
+      },
+      {
+        "id": 5,
+        "question": "نام محصولات به همراه نیاز موجودی هر یک را برگردان.",
+        "sql": "SELECT p.name, iir.quantity_required, ii.name AS inventory_item FROM product AS p JOIN product_inventory_requirement AS iir ON p.id = iir.product_id JOIN inventory_item AS ii ON iir.inventory_item_id = ii.id;"
+      },
+      {
+        "id": 6,
+        "question": "فهرست تامین‌کنندگان به همراه آدرس‌هایشان را نمایش بده.",
+        "sql": "SELECT name, address FROM supplier;"
+      },
+      {
+        "id": 7,
+        "question": "تمام محصولاتی را که توضیحات آنها شامل کلمه 'هوشمند' است پیدا کن.",
+        "sql": "SELECT * FROM product WHERE description LIKE '%هوشمند%';"
+      },
+      {
+        "id": 8,
+        "question": "نام کارکنانی که قبل از تاریخ 2020-01-01 استخدام شده‌اند را نمایش بده.",
+        "sql": "SELECT name FROM employee WHERE hire_date < '2020-01-01';"
+      },
+      {
+        "id": 9,
+        "question": "تعداد سفارش‌های هر مشتری را به تفکیک مشتری نمایش بده.",
+        "sql": "SELECT c.name, COUNT(o.id) AS order_count FROM customer AS c LEFT JOIN \"order\" AS o ON c.id = o.customer_id GROUP BY c.name;"
+      },
+      {
+        "id": 10,
+        "question": "سفارش‌هایی که مجموع مبلغ آنها بیشتر از 500 واحد است را پیدا کن.",
+        "sql": "SELECT id, total_amount FROM \"order\" WHERE total_amount > 500;"
+      },
+      {
+        "id": 11,
+        "question": "نام محصولات و نوع آنها را برای محصولاتی که قیمت بالاتر از میانگین قیمت همه محصولات هستند نمایش بده.",
+        "sql": "SELECT p.name, pt.name AS product_type FROM product AS p JOIN product_type AS pt ON p.product_type_id = pt.id WHERE p.price > (SELECT AVG(price) FROM product);"
+      },
+      {
+        "id": 12,
+        "question": "میانگین نرخ ساعتی کارکنان به تفکیک نقش را محاسبه کن.",
+        "sql": "SELECT er.name AS role, AVG(e.hourly_rate) AS avg_rate FROM employee AS e JOIN employee_role AS er ON e.role_id = er.id GROUP BY er.name;"
+      },
+      {
+        "id": 13,
+        "question": "لیست سفارش‌های ارسال شده به تهران را نمایش بده.",
+        "sql": "SELECT o.id, o.order_date, o.shipping_address FROM \"order\" AS o WHERE o.shipping_address LIKE '%تهران%';"
+      },
+      {
+        "id": 14,
+        "question": "پرفروش‌ترین محصول را پیدا کن.",
+        "sql": "SELECT p.name, SUM(oi.quantity) AS total_sold FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id GROUP BY p.name ORDER BY total_sold DESC LIMIT 1;"
+      },
+      {
+        "id": 15,
+        "question": "مشتریانی که بیش از 3 سفارش داشته‌اند را نمایش بده.",
+        "sql": "SELECT c.name, COUNT(o.id) AS order_count FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id GROUP BY c.name HAVING COUNT(o.id) > 3;"
+      },
+      {
+        "id": 16,
+        "question": "موجودی انبار برای تمام اقلام را نمایش بده.",
+        "sql": "SELECT ii.name, i.quantity FROM inventory AS i JOIN inventory_item AS ii ON i.inventory_item_id = ii.id;"
+      },
+      {
+        "id": 17,
+        "question": "محصولاتی که در ماه گذشته فروش نداشته‌اند را پیدا کن.",
+        "sql": "SELECT p.name FROM product AS p WHERE p.id NOT IN (SELECT DISTINCT oi.product_id FROM order_item AS oi JOIN \"order\" AS o ON oi.order_id = o.id WHERE o.order_date >= CURRENT_DATE - INTERVAL '1 month');"
+      },
+      {
+        "id": 18,
+        "question": "مجموع درآمد به تفکیک ماه در سال جاری را محاسبه کن.",
+        "sql": "SELECT EXTRACT(MONTH FROM o.order_date) AS month, SUM(o.total_amount) AS total_revenue FROM \"order\" AS o WHERE EXTRACT(YEAR FROM o.order_date) = EXTRACT(YEAR FROM CURRENT_DATE) GROUP BY EXTRACT(MONTH FROM o.order_date) ORDER BY month;"
+      },
+      {
+        "id": 19,
+        "question": "تامین‌کنندگانی که بیشترین تعداد اقلام انبار را تامین می‌کنند را نمایش بده.",
+        "sql": "SELECT s.name, COUNT(ii.id) AS item_count FROM supplier AS s JOIN inventory_item AS ii ON s.id = ii.supplier_id GROUP BY s.name ORDER BY item_count DESC;"
+      },
+      {
+        "id": 20,
+        "question": "محصولاتی که موجودی آنها کمتر از حد مجاز است را پیدا کن.",
+        "sql": "SELECT p.name, ii.name AS inventory_item, i.quantity, iir.quantity_required FROM product AS p JOIN product_inventory_requirement AS iir ON p.id = iir.product_id JOIN inventory_item AS ii ON iir.inventory_item_id = ii.id JOIN inventory AS i ON ii.id = i.inventory_item_id WHERE i.quantity < iir.quantity_required;"
+      },
+      {
+        "id": 21,
+        "question": "کارمندانی که در بخش فروش کار می‌کنند و حقوق ساعتی آنها بیشتر از 20 واحد است را نمایش بده.",
+        "sql": "SELECT e.name, e.hourly_rate FROM employee AS e JOIN employee_role AS er ON e.role_id = er.id WHERE er.name = 'فروش' AND e.hourly_rate > 20;"
+      },
+      {
+        "id": 22,
+        "question": "مشتریانی که هرگز سفارش نداده‌اند را پیدا کن.",
+        "sql": "SELECT c.name FROM customer AS c LEFT JOIN \"order\" AS o ON c.id = o.customer_id WHERE o.id IS NULL;"
+      },
+      {
+        "id": 23,
+        "question": "محصولات را بر اساس قیمت به صورت نزولی مرتب کن.",
+        "sql": "SELECT name, price FROM product ORDER BY price DESC;"
+      },
+      {
+        "id": 24,
+        "question": "تعداد محصولات موجود در هر دسته را نمایش بده.",
+        "sql": "SELECT pt.name AS product_type, COUNT(p.id) AS product_count FROM product_type AS pt LEFT JOIN product AS p ON pt.id = p.product_type_id GROUP BY pt.name;"
+      },
+      {
+        "id": 25,
+        "question": "سفارش‌هایی که در سه ماه گذشته ثبت شده‌اند را برگردان.",
+        "sql": "SELECT * FROM \"order\" WHERE order_date >= CURRENT_DATE - INTERVAL '3 months';"
+      },
+      {
+        "id": 26,
+        "question": "مشتریانی که بیشترین مبلغ خرید را داشته‌اند، به ترتیب نزولی نمایش بده.",
+        "sql": "SELECT c.name, SUM(o.total_amount) AS total_spent FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id GROUP BY c.name ORDER BY total_spent DESC;"
+      },
+      {
+        "id": 27,
+        "question": "محصولاتی که هرگز فروش نداشته‌اند را پیدا کن.",
+        "sql": "SELECT p.name FROM product AS p LEFT JOIN order_item AS oi ON p.id = oi.product_id WHERE oi.id IS NULL;"
+      },
+      {
+        "id": 28,
+        "question": "میانگین قیمت محصولات به تفکیک نوع محصول را محاسبه کن.",
+        "sql": "SELECT pt.name AS product_type, AVG(p.price) AS avg_price FROM product AS p JOIN product_type AS pt ON p.product_type_id = pt.id GROUP BY pt.name;"
+      },
+      {
+        "id": 29,
+        "question": "تعداد کارکنان در هر نقش را نمایش بده.",
+        "sql": "SELECT er.name AS role, COUNT(e.id) AS employee_count FROM employee_role AS er LEFT JOIN employee AS e ON er.id = e.role_id GROUP BY er.name;"
+      },
+      {
+        "id": 30,
+        "question": "سفارش‌هایی که شامل محصول 'گوشی هوشمند سامسونگ' هستند را پیدا کن.",
+        "sql": "SELECT DISTINCT o.id, o.order_date, o.total_amount FROM \"order\" AS o JOIN order_item AS oi ON o.id = oi.order_id JOIN product AS p ON oi.product_id = p.id WHERE p.name = 'گوشی هوشمند سامسونگ';"
+      },
+      {
+        "id": 31,
+        "question": "تعداد سفارش‌ها به تفکیک روزهای هفته را نمایش بده.",
+        "sql": "SELECT EXTRACT(DOW FROM o.order_date) AS day_of_week, COUNT(o.id) AS order_count FROM \"order\" AS o GROUP BY EXTRACT(DOW FROM o.order_date) ORDER BY day_of_week;"
+      },
+      {
+        "id": 32,
+        "question": "محصولاتی که قیمت آنها بین 100 تا 500 واحد است را نمایش بده.",
+        "sql": "SELECT name, price FROM product WHERE price BETWEEN 100 AND 500;"
+      },
+      {
+        "id": 33,
+        "question": "تامین‌کنندگانی که هیچ محصولی از آنها در انبار موجود نیست را پیدا کن.",
+        "sql": "SELECT s.name FROM supplier AS s LEFT JOIN inventory_item AS ii ON s.id = ii.supplier_id LEFT JOIN inventory AS i ON ii.id = i.inventory_item_id WHERE i.id IS NULL OR i.quantity = 0;"
+      },
+      {
+        "id": 34,
+        "question": "مشتریانی که در سال جاری بیش از 1000 واحد خرید داشته‌اند را نمایش بده.",
+        "sql": "SELECT c.name, SUM(o.total_amount) AS total_spent FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id WHERE EXTRACT(YEAR FROM o.order_date) = EXTRACT(YEAR FROM CURRENT_DATE) GROUP BY c.name HAVING SUM(o.total_amount) > 1000;"
+      },
+      {
+        "id": 35,
+        "question": "محصولاتی که بیش از 5 بار فروخته شده‌اند را به همراه تعداد فروش نمایش بده.",
+        "sql": "SELECT p.name, COUNT(oi.id) AS sales_count FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id GROUP BY p.name HAVING COUNT(oi.id) > 5;"
+      },
+      {
+        "id": 36,
+        "question": "کارمندانی که در ماه جاری استخدام شده‌اند را نمایش بده.",
+        "sql": "SELECT name FROM employee WHERE EXTRACT(MONTH FROM hire_date) = EXTRACT(MONTH FROM CURRENT_DATE) AND EXTRACT(YEAR FROM hire_date) = EXTRACT(YEAR FROM CURRENT_DATE);"
+      },
+      {
+        "id": 37,
+        "question": "مشتریانی که آدرس ایمیل آنها با gmail.com تمام می‌شود را پیدا کن.",
+        "sql": "SELECT name, email FROM customer WHERE email LIKE '%@gmail.com';"
+      },
+      {
+        "id": 38,
+        "question": "محصولاتی که در توضیحات آنها کلمه 'ضدآب' یا 'مقاوم' وجود دارد را نمایش بده.",
+        "sql": "SELECT name, description FROM product WHERE description LIKE '%ضدآب%' OR description LIKE '%مقاوم%';"
+      },
+      {
+        "id": 39,
+        "question": "سفارش‌هایی که بیش از 5 آیتم دارند را پیدا کن.",
+        "sql": "SELECT o.id, COUNT(oi.id) AS item_count FROM \"order\" AS o JOIN order_item AS oi ON o.id = oi.order_id GROUP BY o.id HAVING COUNT(oi.id) > 5;"
+      },
+      {
+        "id": 40,
+        "question": "محصولاتی که قیمت آنها از میانگین قیمت محصولات هم‌نوع خود بیشتر است را نمایش بده.",
+        "sql": "SELECT p1.name, p1.price, pt.name AS product_type FROM product AS p1 JOIN product_type AS pt ON p1.product_type_id = pt.id WHERE p1.price > (SELECT AVG(p2.price) FROM product AS p2 WHERE p2.product_type_id = p1.product_type_id);"
+      },
+      {
+        "id": 41,
+        "question": "تعداد سفارش‌های ثبت شده در هر ماه سال گذشته را نمایش بده.",
+        "sql": "SELECT EXTRACT(MONTH FROM o.order_date) AS month, COUNT(o.id) AS order_count FROM \"order\" AS o WHERE EXTRACT(YEAR FROM o.order_date) = EXTRACT(YEAR FROM CURRENT_DATE) - 1 GROUP BY EXTRACT(MONTH FROM o.order_date) ORDER BY month;"
+      },
+      {
+        "id": 42,
+        "question": "مشتریانی که در سه ماه گذشته سفارش داشته‌اند را به همراه تعداد سفارش‌هایشان نمایش بده.",
+        "sql": "SELECT c.name, COUNT(o.id) AS order_count FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id WHERE o.order_date >= CURRENT_DATE - INTERVAL '3 months' GROUP BY c.name;"
+      },
+      {
+        "id": 43,
+        "question": "محصولاتی که در بیش از 10 سفارش مختلف وجود دارند را پیدا کن.",
+        "sql": "SELECT p.name, COUNT(DISTINCT oi.order_id) AS order_count FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id GROUP BY p.name HAVING COUNT(DISTINCT oi.order_id) > 10;"
+      },
+      {
+        "id": 44,
+        "question": "کارمندانی که هیچ سفارشی را ثبت نکرده‌اند را نمایش بده.",
+        "sql": "SELECT e.name FROM employee AS e LEFT JOIN \"order\" AS o ON e.id = o.employee_id WHERE o.id IS NULL;"
+      },
+      {
+        "id": 45,
+        "question": "محصولاتی که قیمت آنها در 30 روز گذشته تغییر کرده است را پیدا کن.",
+        "sql": "SELECT p.name, ph.old_price, p.price AS new_price FROM product AS p JOIN price_history AS ph ON p.id = ph.product_id WHERE ph.change_date >= CURRENT_DATE - INTERVAL '30 days';"
+      },
+      {
+        "id": 46,
+        "question": "مشتریانی که بیشترین تعداد محصول را خریده‌اند را به ترتیب نزولی نمایش بده.",
+        "sql": "SELECT c.name, SUM(oi.quantity) AS total_items FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id JOIN order_item AS oi ON o.id = oi.order_id GROUP BY c.name ORDER BY total_items DESC;"
+      },
+      {
+        "id": 47,
+        "question": "محصولاتی که در هر سفارش به طور میانگین بیش از 2 عدد فروخته شده‌اند را پیدا کن.",
+        "sql": "SELECT p.name, AVG(oi.quantity) AS avg_quantity FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id GROUP BY p.name HAVING AVG(oi.quantity) > 2;"
+      },
+      {
+        "id": 48,
+        "question": "سفارش‌هایی که مجموع قیمت آیتم‌های آنها با مبلغ کل سفارش متفاوت است را نمایش بده.",
+        "sql": "SELECT o.id, o.total_amount, SUM(oi.price * oi.quantity) AS calculated_total FROM \"order\" AS o JOIN order_item AS oi ON o.id = oi.order_id GROUP BY o.id, o.total_amount HAVING o.total_amount != SUM(oi.price * oi.quantity);"
+      },
+      {
+        "id": 49,
+        "question": "تامین‌کنندگانی که محصولات آنها بیشترین فروش را داشته‌اند را نمایش بده.",
+        "sql": "SELECT s.name, SUM(oi.quantity) AS total_sold FROM supplier AS s JOIN inventory_item AS ii ON s.id = ii.supplier_id JOIN product_inventory_requirement AS pir ON ii.id = pir.inventory_item_id JOIN product AS p ON pir.product_id = p.id JOIN order_item AS oi ON p.id = oi.product_id GROUP BY s.name ORDER BY total_sold DESC;"
+      },
+      {
+        "id": 50,
+        "question": "محصولاتی که در سبد خرید مشتریان قرار دارند اما هنوز خریداری نشده‌اند را پیدا کن.",
+        "sql": "SELECT p.name, COUNT(sc.id) AS cart_count FROM product AS p JOIN shopping_cart AS sc ON p.id = sc.product_id WHERE sc.is_purchased = FALSE GROUP BY p.name;"
+      },
+      {
+        "id": 51,
+        "question": "مشتریانی که در هر خرید به طور میانگین بیش از 3 محصول خریده‌اند را نمایش بده.",
+        "sql": "SELECT c.name, AVG(order_items.item_count) AS avg_items_per_order FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id JOIN (SELECT order_id, COUNT(id) AS item_count FROM order_item GROUP BY order_id) AS order_items ON o.id = order_items.order_id GROUP BY c.name HAVING AVG(order_items.item_count) > 3;"
+      },
+      {
+        "id": 52,
+        "question": "محصولاتی که در 90 روز گذشته بیشترین افزایش قیمت را داشته‌اند را پیدا کن.",
+        "sql": "SELECT p.name, MIN(ph.old_price) AS old_price, p.price AS current_price, (p.price - MIN(ph.old_price)) AS price_increase FROM product AS p JOIN price_history AS ph ON p.id = ph.product_id WHERE ph.change_date >= CURRENT_DATE - INTERVAL '90 days' GROUP BY p.id, p.name, p.price ORDER BY price_increase DESC;"
+      },
+      {
+        "id": 53,
+        "question": "کارمندانی که بیشترین تعداد سفارش را ثبت کرده‌اند را به همراه تعداد سفارش‌ها نمایش بده.",
+        "sql": "SELECT e.name, COUNT(o.id) AS order_count FROM employee AS e JOIN \"order\" AS o ON e.id = o.employee_id GROUP BY e.name ORDER BY order_count DESC;"
+      },
+      {
+        "id": 54,
+        "question": "محصولاتی که در بیش از 50% سفارش‌ها وجود دارند را پیدا کن.",
+        "sql": "SELECT p.name, COUNT(DISTINCT oi.order_id) * 100.0 / (SELECT COUNT(*) FROM \"order\") AS percentage FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id GROUP BY p.name HAVING COUNT(DISTINCT oi.order_id) * 100.0 / (SELECT COUNT(*) FROM \"order\") > 50;"
+      },
+      {
+        "id": 55,
+        "question": "مشتریانی که در یک روز بیش از یک سفارش ثبت کرده‌اند را نمایش بده.",
+        "sql": "SELECT c.name, DATE(o.order_date) AS order_day, COUNT(o.id) AS orders_per_day FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id GROUP BY c.name, DATE(o.order_date) HAVING COUNT(o.id) > 1;"
+      },
+      {
+        "id": 56,
+        "question": "محصولاتی که قیمت آنها در 6 ماه گذشته بیش از 10% افزایش یافته است را پیدا کن.",
+        "sql": "SELECT p.name, MIN(ph.old_price) AS old_price, p.price AS current_price, ((p.price - MIN(ph.old_price)) * 100.0 / MIN(ph.old_price)) AS price_increase_percent FROM product AS p JOIN price_history AS ph ON p.id = ph.product_id WHERE ph.change_date >= CURRENT_DATE - INTERVAL '6 months' GROUP BY p.id, p.name, p.price HAVING ((p.price - MIN(ph.old_price)) * 100.0 / MIN(ph.old_price)) > 10;"
+      },
+      {
+        "id": 57,
+        "question": "تعداد سفارش‌های ثبت شده توسط هر کارمند در هر ماه سال جاری را نمایش بده.",
+        "sql": "SELECT e.name, EXTRACT(MONTH FROM o.order_date) AS month, COUNT(o.id) AS order_count FROM employee AS e JOIN \"order\" AS o ON e.id = o.employee_id WHERE EXTRACT(YEAR FROM o.order_date) = EXTRACT(YEAR FROM CURRENT_DATE) GROUP BY e.name, EXTRACT(MONTH FROM o.order_date) ORDER BY e.name, month;"
+      },
+      {
+        "id": 58,
+        "question": "محصولاتی که در انبار موجود نیستند اما در سفارش‌های ثبت شده وجود دارند را پیدا کن.",
+        "sql": "SELECT DISTINCT p.name FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id JOIN product_inventory_requirement AS pir ON p.id = pir.product_id JOIN inventory_item AS ii ON pir.inventory_item_id = ii.id LEFT JOIN inventory AS i ON ii.id = i.inventory_item_id WHERE i.quantity IS NULL OR i.quantity = 0;"
+      },
+      {
+        "id": 59,
+        "question": "مشتریانی که بیشترین تنوع محصول را خریده‌اند را به ترتیب نزولی نمایش بده.",
+        "sql": "SELECT c.name, COUNT(DISTINCT oi.product_id) AS unique_products FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id JOIN order_item AS oi ON o.id = oi.order_id GROUP BY c.name ORDER BY unique_products DESC;"
+      },
+      {
+        "id": 60,
+        "question": "محصولاتی که در سفارش‌های با مبلغ بالای 1000 واحد وجود دارند را پیدا کن.",
+        "sql": "SELECT DISTINCT p.name FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id JOIN \"order\" AS o ON oi.order_id = o.id WHERE o.total_amount > 1000;"
+      },
+      {
+        "id": 61,
+        "question": "محصولاتی که در 6 ماه گذشته هیچ فروشی نداشته‌اند را به همراه موجودی انبار آنها نمایش بده.",
+        "sql": "SELECT p.name, ii.name AS inventory_item, i.quantity FROM product AS p LEFT JOIN order_item AS oi ON p.id = oi.product_id AND oi.order_id IN (SELECT id FROM \"order\" WHERE order_date >= CURRENT_DATE - INTERVAL '6 months') JOIN product_inventory_requirement AS pir ON p.id = pir.product_id JOIN inventory_item AS ii ON pir.inventory_item_id = ii.id JOIN inventory AS i ON ii.id = i.inventory_item_id WHERE oi.id IS NULL;"
+      },
+      {
+        "id": 62,
+        "question": "مشتریانی که در هر فصل سال گذشته حداقل یک خرید داشته‌اند را پیدا کن.",
+        "sql": "SELECT c.name FROM customer AS c WHERE c.id IN (SELECT DISTINCT o1.customer_id FROM \"order\" AS o1 WHERE EXTRACT(YEAR FROM o1.order_date) = EXTRACT(YEAR FROM CURRENT_DATE) - 1 AND EXTRACT(QUARTER FROM o1.order_date) = 1) AND c.id IN (SELECT DISTINCT o2.customer_id FROM \"order\" AS o2 WHERE EXTRACT(YEAR FROM o2.order_date) = EXTRACT(YEAR FROM CURRENT_DATE) - 1 AND EXTRACT(QUARTER FROM o2.order_date) = 2) AND c.id IN (SELECT DISTINCT o3.customer_id FROM \"order\" AS o3 WHERE EXTRACT(YEAR FROM o3.order_date) = EXTRACT(YEAR FROM CURRENT_DATE) - 1 AND EXTRACT(QUARTER FROM o3.order_date) = 3) AND c.id IN (SELECT DISTINCT o4.customer_id FROM \"order\" AS o4 WHERE EXTRACT(YEAR FROM o4.order_date) = EXTRACT(YEAR FROM CURRENT_DATE) - 1 AND EXTRACT(QUARTER FROM o4.order_date) = 4);"
+      },
+      {
+        "id": 63,
+        "question": "محصولاتی که قیمت آنها بیش از دو برابر قیمت ارزان‌ترین محصول هم‌نوع آنها است را نمایش بده.",
+        "sql": "SELECT p1.name, p1.price, pt.name AS product_type FROM product AS p1 JOIN product_type AS pt ON p1.product_type_id = pt.id WHERE p1.price > 2 * (SELECT MIN(p2.price) FROM product AS p2 WHERE p2.product_type_id = p1.product_type_id);"
+      },
+      {
+        "id": 64,
+        "question": "مشتریانی که میانگین مبلغ خرید آنها بیشتر از میانگین کل خریدها است را پیدا کن.",
+        "sql": "SELECT c.name, AVG(o.total_amount) AS avg_order_amount FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id GROUP BY c.name HAVING AVG(o.total_amount) > (SELECT AVG(total_amount) FROM \"order\");"
+      },
+      {
+        "id": 65,
+        "question": "محصولاتی که در بیش از 80% موارد همراه با محصول 'هدفون بی‌سیم' خریداری شده‌اند را نمایش بده.",
+        "sql": "SELECT p2.name FROM product AS p2 WHERE p2.id != (SELECT id FROM product WHERE name = 'هدفون بی‌سیم') AND (SELECT COUNT(DISTINCT o.id) FROM \"order\" AS o JOIN order_item AS oi1 ON o.id = oi1.order_id JOIN order_item AS oi2 ON o.id = oi2.order_id WHERE oi1.product_id = (SELECT id FROM product WHERE name = 'هدفون بی‌سیم') AND oi2.product_id = p2.id) * 100.0 / (SELECT COUNT(DISTINCT o.id) FROM \"order\" AS o JOIN order_item AS oi ON o.id = oi.order_id WHERE oi.product_id = (SELECT id FROM product WHERE name = 'هدفون بی‌سیم')) > 80;"
+      },
+      {
+        "id": 66,
+        "question": "کارمندانی که در سال جاری بیشترین میزان فروش را داشته‌اند را به ترتیب نزولی نمایش بده.",
+        "sql": "SELECT e.name, SUM(o.total_amount) AS total_sales FROM employee AS e JOIN \"order\" AS o ON e.id = o.employee_id WHERE EXTRACT(YEAR FROM o.order_date) = EXTRACT(YEAR FROM CURRENT_DATE) GROUP BY e.name ORDER BY total_sales DESC;"
+      },
+      {
+        "id": 67,
+        "question": "مشتریانی که در آخرین خرید خود بیش از 3 محصول خریده‌اند را پیدا کن.",
+        "sql": "SELECT c.name, COUNT(oi.id) AS item_count FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id JOIN order_item AS oi ON o.id = oi.order_id WHERE o.order_date = (SELECT MAX(o2.order_date) FROM \"order\" AS o2 WHERE o2.customer_id = c.id) GROUP BY c.name, o.id HAVING COUNT(oi.id) > 3;"
+      },
+      {
+        "id": 68,
+        "question": "محصولاتی که در ماه جاری بیشترین کاهش قیمت را داشته‌اند را نمایش بده.",
+        "sql": "SELECT p.name, MAX(ph.old_price) AS old_price, p.price AS current_price, (MAX(ph.old_price) - p.price) AS price_decrease FROM product AS p JOIN price_history AS ph ON p.id = ph.product_id WHERE EXTRACT(MONTH FROM ph.change_date) = EXTRACT(MONTH FROM CURRENT_DATE) AND EXTRACT(YEAR FROM ph.change_date) = EXTRACT(YEAR FROM CURRENT_DATE) GROUP BY p.id, p.name, p.price HAVING MAX(ph.old_price) > p.price ORDER BY price_decrease DESC;"
+      },
+      {
+        "id": 69,
+        "question": "تعداد سفارش‌های ثبت شده در هر ساعت از شبانه‌روز را نمایش بده.",
+        "sql": "SELECT EXTRACT(HOUR FROM o.order_date) AS hour_of_day, COUNT(o.id) AS order_count FROM \"order\" AS o GROUP BY EXTRACT(HOUR FROM o.order_date) ORDER BY hour_of_day;"
+      },
+      {
+        "id": 70,
+        "question": "مشتریانی که در سال گذشته بیش از میانگین تعداد سفارش‌های سال گذشته، سفارش داشته‌اند را پیدا کن.",
+        "sql": "SELECT c.name, COUNT(o.id) AS order_count FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id WHERE EXTRACT(YEAR FROM o.order_date) = EXTRACT(YEAR FROM CURRENT_DATE) - 1 GROUP BY c.name HAVING COUNT(o.id) > (SELECT AVG(order_counts.count) FROM (SELECT customer_id, COUNT(id) AS count FROM \"order\" WHERE EXTRACT(YEAR FROM order_date) = EXTRACT(YEAR FROM CURRENT_DATE) - 1 GROUP BY customer_id) AS order_counts);"
+      },
+      {
+        "id": 71,
+        "question": "محصولاتی که در هر ماه سال جاری فروش داشته‌اند را نمایش بده.",
+        "sql": "SELECT p.name FROM product AS p WHERE (SELECT COUNT(DISTINCT EXTRACT(MONTH FROM o.order_date)) FROM \"order\" AS o JOIN order_item AS oi ON o.id = oi.order_id WHERE oi.product_id = p.id AND EXTRACT(YEAR FROM o.order_date) = EXTRACT(YEAR FROM CURRENT_DATE)) = (SELECT COUNT(DISTINCT EXTRACT(MONTH FROM CURRENT_DATE - (n || ' month')::INTERVAL)) FROM generate_series(0, EXTRACT(MONTH FROM CURRENT_DATE)::INTEGER - 1) AS n);"
+      },
+      {
+        "id": 72,
+        "question": "مشتریانی که بیشترین تعداد محصول را از یک نوع خاص خریده‌اند را پیدا کن.",
+        "sql": "SELECT c.name, pt.name AS product_type, SUM(oi.quantity) AS total_quantity FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id JOIN order_item AS oi ON o.id = oi.order_id JOIN product AS p ON oi.product_id = p.id JOIN product_type AS pt ON p.product_type_id = pt.id GROUP BY c.name, pt.name ORDER BY total_quantity DESC;"
+      },
+      {
+        "id": 73,
+        "question": "محصولاتی که قیمت آنها در طول زمان بیشترین نوسان را داشته است را نمایش بده.",
+        "sql": "SELECT p.name, MAX(ph.old_price) - MIN(ph.old_price) AS price_fluctuation FROM product AS p JOIN price_history AS ph ON p.id = ph.product_id GROUP BY p.name ORDER BY price_fluctuation DESC;"
+      },
+      {
+        "id": 74,
+        "question": "کارمندانی که در روزهای تعطیل (شنبه و یکشنبه) بیشترین تعداد سفارش را ثبت کرده‌اند را پیدا کن.",
+        "sql": "SELECT e.name, COUNT(o.id) AS weekend_orders FROM employee AS e JOIN \"order\" AS o ON e.id = o.employee_id WHERE EXTRACT(DOW FROM o.order_date) IN (0, 6) GROUP BY e.name ORDER BY weekend_orders DESC;"
+      },
+      {
+        "id": 75,
+        "question": "مشتریانی که در سفارش‌های خود بیشترین تنوع تامین‌کننده را داشته‌اند را نمایش بده.",
+        "sql": "SELECT c.name, COUNT(DISTINCT s.id) AS supplier_count FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id JOIN order_item AS oi ON o.id = oi.order_id JOIN product AS p ON oi.product_id = p.id JOIN product_inventory_requirement AS pir ON p.id = pir.product_id JOIN inventory_item AS ii ON pir.inventory_item_id = ii.id JOIN supplier AS s ON ii.supplier_id = s.id GROUP BY c.name ORDER BY supplier_count DESC;"
+      },
+      {
+        "id": 76,
+        "question": "محصولاتی که در سفارش‌های با بیشترین تعداد آیتم وجود دارند را پیدا کن.",
+        "sql": "SELECT p.name FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id WHERE oi.order_id IN (SELECT o.id FROM \"order\" AS o JOIN (SELECT order_id, COUNT(id) AS item_count FROM order_item GROUP BY order_id ORDER BY item_count DESC LIMIT 5) AS top_orders ON o.id = top_orders.order_id);"
+      },
+      {
+        "id": 77,
+        "question": "مشتریانی که در هر خرید خود حداقل یک محصول از هر دسته خریده‌اند را نمایش بده.",
+        "sql": "SELECT c.name FROM customer AS c WHERE NOT EXISTS (SELECT o.id FROM \"order\" AS o WHERE o.customer_id = c.id AND EXISTS (SELECT pt.id FROM product_type AS pt WHERE NOT EXISTS (SELECT p.id FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id WHERE p.product_type_id = pt.id AND oi.order_id = o.id)));"
+      },
+      {
+        "id": 78,
+        "question": "محصولاتی که بیشترین سود را برای فروشگاه داشته‌اند را پیدا کن.",
+        "sql": "SELECT p.name, SUM(oi.price * oi.quantity) - SUM(ii.cost_price * oi.quantity) AS total_profit FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id JOIN product_inventory_requirement AS pir ON p.id = pir.product_id JOIN inventory_item AS ii ON pir.inventory_item_id = ii.id GROUP BY p.name ORDER BY total_profit DESC;"
+      },
+      {
+        "id": 79,
+        "question": "مشتریانی که در سال جاری بیشترین افزایش در میزان خرید نسبت به سال گذشته را داشته‌اند را نمایش بده.",
+        "sql": "SELECT c.name, SUM(CASE WHEN EXTRACT(YEAR FROM o.order_date) = EXTRACT(YEAR FROM CURRENT_DATE) THEN o.total_amount ELSE 0 END) - SUM(CASE WHEN EXTRACT(YEAR FROM o.order_date) = EXTRACT(YEAR FROM CURRENT_DATE) - 1 THEN o.total_amount ELSE 0 END) AS purchase_increase FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id WHERE EXTRACT(YEAR FROM o.order_date) IN (EXTRACT(YEAR FROM CURRENT_DATE), EXTRACT(YEAR FROM CURRENT_DATE) - 1) GROUP BY c.name ORDER BY purchase_increase DESC;"
+      },
+      {
+        "id": 80,
+        "question": "محصولاتی که در فصل تابستان بیشترین فروش و در فصل زمستان کمترین فروش را داشته‌اند را پیدا کن.",
+        "sql": "SELECT p.name FROM product AS p JOIN (SELECT product_id, SUM(quantity) AS summer_sales FROM order_item AS oi JOIN \"order\" AS o ON oi.order_id = o.id WHERE EXTRACT(MONTH FROM o.order_date) IN (6, 7, 8) GROUP BY product_id) AS summer ON p.id = summer.product_id JOIN (SELECT product_id, SUM(quantity) AS winter_sales FROM order_item AS oi JOIN \"order\" AS o ON oi.order_id = o.id WHERE EXTRACT(MONTH FROM o.order_date) IN (12, 1, 2) GROUP BY product_id) AS winter ON p.id = winter.product_id WHERE summer.summer_sales > (SELECT AVG(summer_total) FROM (SELECT product_id, SUM(quantity) AS summer_total FROM order_item AS oi JOIN \"order\" AS o ON oi.order_id = o.id WHERE EXTRACT(MONTH FROM o.order_date) IN (6, 7, 8) GROUP BY product_id) AS s) AND winter.winter_sales < (SELECT AVG(winter_total) FROM (SELECT product_id, SUM(quantity) AS winter_total FROM order_item AS oi JOIN \"order\" AS o ON oi.order_id = o.id WHERE EXTRACT(MONTH FROM o.order_date) IN (12, 1, 2) GROUP BY product_id) AS w);"
+      },
+      {
+        "id": 81,
+        "question": "کارمندانی که نسبت فروش آنها به ساعات کاری بیشتر از میانگین است را نمایش بده.",
+        "sql": "SELECT e.name, SUM(o.total_amount) / SUM(w.hours_worked) AS sales_per_hour FROM employee AS e JOIN \"order\" AS o ON e.id = o.employee_id JOIN work_hours AS w ON e.id = w.employee_id GROUP BY e.name HAVING SUM(o.total_amount) / SUM(w.hours_worked) > (SELECT SUM(o.total_amount) / SUM(w.hours_worked) FROM \"order\" AS o JOIN employee AS e ON o.employee_id = e.id JOIN work_hours AS w ON e.id = w.employee_id);"
+      },
+      {
+        "id": 82,
+        "question": "مشتریانی که بیشترین زمان بین دو خرید متوالی را داشته‌اند را پیدا کن.",
+        "sql": "WITH order_gaps AS (SELECT c.id, c.name, o.order_date, LAG(o.order_date) OVER (PARTITION BY c.id ORDER BY o.order_date) AS prev_order_date, o.order_date - LAG(o.order_date) OVER (PARTITION BY c.id ORDER BY o.order_date) AS gap FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id) SELECT name, MAX(gap) AS max_gap_days FROM order_gaps WHERE gap IS NOT NULL GROUP BY id, name ORDER BY max_gap_days DESC;"
+      },
+      {
+        "id": 83,
+        "question": "محصولاتی که در سفارش‌های با بیشترین تنوع محصول وجود دارند را نمایش بده.",
+        "sql": "SELECT p.name FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id WHERE oi.order_id IN (SELECT order_id FROM (SELECT order_id, COUNT(DISTINCT product_id) AS product_variety FROM order_item GROUP BY order_id ORDER BY product_variety DESC LIMIT 5) AS diverse_orders);"
+      },
+      {
+        "id": 84,
+        "question": "مشتریانی که در خریدهای خود الگوی مشابهی با مشتری 'علی رضایی' دارند را پیدا کن.",
+        "sql": "WITH ali_products AS (SELECT p.id, COUNT(oi.id) AS purchase_count FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id JOIN \"order\" AS o ON oi.order_id = o.id JOIN customer AS c ON o.customer_id = c.id WHERE c.name = 'علی رضایی' GROUP BY p.id) SELECT c.name, COUNT(DISTINCT ap.id) AS common_products FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id JOIN order_item AS oi ON o.id = oi.order_id JOIN ali_products AS ap ON oi.product_id = ap.id WHERE c.name != 'علی رضایی' GROUP BY c.name ORDER BY common_products DESC;"
+      },
+      {
+        "id": 85,
+        "question": "محصولاتی که در سفارش‌های با مبلغ بالا بیشتر فروخته می‌شوند را نمایش بده.",
+        "sql": "SELECT p.name, COUNT(oi.id) AS high_value_sales FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id JOIN \"order\" AS o ON oi.order_id = o.id WHERE o.total_amount > (SELECT percentile_cont(0.75) WITHIN GROUP (ORDER BY total_amount) FROM \"order\") GROUP BY p.name ORDER BY high_value_sales DESC;"
+      },
+      {
+        "id": 86,
+        "question": "کارمندانی که بیشترین تعداد مشتری منحصر به فرد را داشته‌اند را پیدا کن.",
+        "sql": "SELECT e.name, COUNT(DISTINCT o.customer_id) AS unique_customers FROM employee AS e JOIN \"order\" AS o ON e.id = o.employee_id GROUP BY e.name ORDER BY unique_customers DESC;"
+      },
+      {
+        "id": 87,
+        "question": "مشتریانی که در سفارش‌های خود بیشترین تعداد محصول از گران‌ترین دسته محصولات را خریده‌اند را نمایش بده.",
+        "sql": "WITH expensive_category AS (SELECT pt.id FROM product_type AS pt JOIN product AS p ON pt.id = p.product_type_id GROUP BY pt.id ORDER BY AVG(p.price) DESC LIMIT 1) SELECT c.name, SUM(oi.quantity) AS premium_items FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id JOIN order_item AS oi ON o.id = oi.order_id JOIN product AS p ON oi.product_id = p.id JOIN expensive_category AS ec ON p.product_type_id = ec.id GROUP BY c.name ORDER BY premium_items DESC;"
+      },
+      {
+        "id": 88,
+        "question": "محصولاتی که در سفارش‌های آخر هفته بیشتر از روزهای عادی هفته فروخته می‌شوند را پیدا کن.",
+        "sql": "SELECT p.name, SUM(CASE WHEN EXTRACT(DOW FROM o.order_date) IN (0, 6) THEN oi.quantity ELSE 0 END) AS weekend_sales, SUM(CASE WHEN EXTRACT(DOW FROM o.order_date) NOT IN (0, 6) THEN oi.quantity ELSE 0 END) AS weekday_sales FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id JOIN \"order\" AS o ON oi.order_id = o.id GROUP BY p.name HAVING SUM(CASE WHEN EXTRACT(DOW FROM o.order_date) IN (0, 6) THEN oi.quantity ELSE 0 END) > SUM(CASE WHEN EXTRACT(DOW FROM o.order_date) NOT IN (0, 6) THEN oi.quantity ELSE 0 END);"
+      },
+      {
+        "id": 89,
+        "question": "مشتریانی که در هر فصل سال الگوی خرید متفاوتی دارند را نمایش بده.",
+        "sql": "WITH seasonal_products AS (SELECT c.id, c.name, EXTRACT(QUARTER FROM o.order_date) AS quarter, p.product_type_id, COUNT(oi.id) AS purchase_count FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id JOIN order_item AS oi ON o.id = oi.order_id JOIN product AS p ON oi.product_id = p.id GROUP BY c.id, c.name, EXTRACT(QUARTER FROM o.order_date), p.product_type_id) SELECT DISTINCT sp1.name FROM seasonal_products AS sp1 WHERE NOT EXISTS (SELECT 1 FROM seasonal_products AS sp2 WHERE sp1.id = sp2.id AND sp1.quarter != sp2.quarter AND sp1.product_type_id = sp2.product_type_id AND ABS(sp1.purchase_count - sp2.purchase_count) / GREATEST(sp1.purchase_count, sp2.purchase_count) < 0.5);"
+      },
+      {
+        "id": 90,
+        "question": "محصولاتی که قیمت آنها در طول زمان روند صعودی داشته است را پیدا کن.",
+        "sql": "WITH price_trends AS (SELECT p.id, p.name, ph.change_date, ph.old_price, LEAD(ph.old_price) OVER (PARTITION BY p.id ORDER BY ph.change_date) AS next_price FROM product AS p JOIN price_history AS ph ON p.id = ph.product_id) SELECT DISTINCT name FROM price_trends WHERE next_price IS NOT NULL GROUP BY id, name HAVING COUNT(CASE WHEN next_price > old_price THEN 1 END) = COUNT(next_price);"
+      },
+      {
+        "id": 91,
+        "question": "کارمندانی که در فروش محصولات جدید (محصولات اضافه شده در 3 ماه اخیر) موفق‌تر بوده‌اند را نمایش بده.",
+        "sql": "SELECT e.name, COUNT(oi.id) AS new_product_sales FROM employee AS e JOIN \"order\" AS o ON e.id = o.employee_id JOIN order_item AS oi ON o.id = oi.order_id JOIN product AS p ON oi.product_id = p.id WHERE p.added_date >= CURRENT_DATE - INTERVAL '3 months' GROUP BY e.name ORDER BY new_product_sales DESC;"
+      },
+      {
+        "id": 92,
+        "question": "مشتریانی که بیشترین تعداد سفارش را در ساعات غیرکاری (بعد از ساعت 18) ثبت کرده‌اند را پیدا کن.",
+        "sql": "SELECT c.name, COUNT(o.id) AS after_hours_orders FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id WHERE EXTRACT(HOUR FROM o.order_date) >= 18 GROUP BY c.name ORDER BY after_hours_orders DESC;"
+      },
+      {
+        "id": 93,
+        "question": "محصولاتی که در سفارش‌های با بیشترین تخفیف وجود دارند را نمایش بده.",
+        "sql": "SELECT p.name, COUNT(oi.id) AS discounted_sales FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id JOIN \"order\" AS o ON oi.order_id = o.id WHERE o.discount_amount > (SELECT percentile_cont(0.75) WITHIN GROUP (ORDER BY discount_amount) FROM \"order\" WHERE discount_amount > 0) GROUP BY p.name ORDER BY discounted_sales DESC;"
+      },
+      {
+        "id": 94,
+        "question": "کارمندانی که بیشترین میزان فروش را در محصولات با حاشیه سود بالا داشته‌اند را پیدا کن.",
+        "sql": "WITH high_margin_products AS (SELECT p.id FROM product AS p JOIN product_inventory_requirement AS pir ON p.id = pir.product_id JOIN inventory_item AS ii ON pir.inventory_item_id = ii.id GROUP BY p.id, p.price HAVING p.price / SUM(ii.cost_price * pir.quantity_required) > 2) SELECT e.name, SUM(oi.price * oi.quantity) AS high_margin_sales FROM employee AS e JOIN \"order\" AS o ON e.id = o.employee_id JOIN order_item AS oi ON o.id = oi.order_id JOIN high_margin_products AS hmp ON oi.product_id = hmp.id GROUP BY e.name ORDER BY high_margin_sales DESC;"
+      },
+      {
+        "id": 95,
+        "question": "مشتریانی که در خریدهای خود بیشترین تنوع تامین‌کننده را داشته‌اند را نمایش بده.",
+        "sql": "SELECT c.name, COUNT(DISTINCT s.id) AS supplier_variety FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id JOIN order_item AS oi ON o.id = oi.order_id JOIN product AS p ON oi.product_id = p.id JOIN product_inventory_requirement AS pir ON p.id = pir.product_id JOIN inventory_item AS ii ON pir.inventory_item_id = ii.id JOIN supplier AS s ON ii.supplier_id = s.id GROUP BY c.name ORDER BY supplier_variety DESC;"
+      },
+      {
+        "id": 96,
+        "question": "محصولاتی که در سفارش‌های مشتریان وفادار (مشتریانی که بیش از 10 سفارش داشته‌اند) بیشتر فروخته شده‌اند را پیدا کن.",
+        "sql": "WITH loyal_customers AS (SELECT customer_id FROM \"order\" GROUP BY customer_id HAVING COUNT(id) > 10) SELECT p.name, SUM(oi.quantity) AS loyal_sales FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id JOIN \"order\" AS o ON oi.order_id = o.id JOIN loyal_customers AS lc ON o.customer_id = lc.customer_id GROUP BY p.name ORDER BY loyal_sales DESC;"
+      },
+      {
+        "id": 97,
+        "question": "کارمندانی که بیشترین میزان فروش را در محصولاتی که کمتر فروخته می‌شوند داشته‌اند را نمایش بده.",
+        "sql": "WITH low_selling_products AS (SELECT p.id FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id GROUP BY p.id HAVING SUM(oi.quantity) < (SELECT percentile_cont(0.25) WITHIN GROUP (ORDER BY product_sales) FROM (SELECT product_id, SUM(quantity) AS product_sales FROM order_item GROUP BY product_id) AS sales)) SELECT e.name, SUM(oi.quantity) AS rare_product_sales FROM employee AS e JOIN \"order\" AS o ON e.id = o.employee_id JOIN order_item AS oi ON o.id = oi.order_id JOIN low_selling_products AS lsp ON oi.product_id = lsp.id GROUP BY e.name ORDER BY rare_product_sales DESC;"
+      },
+      {
+        "id": 98,
+        "question": "مشتریانی که در سفارش‌های خود بیشترین تعداد محصول از تامین‌کنندگان خارجی را خریده‌اند را پیدا کن.",
+        "sql": "SELECT c.name, SUM(oi.quantity) AS foreign_product_quantity FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id JOIN order_item AS oi ON o.id = oi.order_id JOIN product AS p ON oi.product_id = p.id JOIN product_inventory_requirement AS pir ON p.id = pir.product_id JOIN inventory_item AS ii ON pir.inventory_item_id = ii.id JOIN supplier AS s ON ii.supplier_id = s.id WHERE s.is_foreign = TRUE GROUP BY c.name ORDER BY foreign_product_quantity DESC;"
+      },
+      {
+        "id": 99,
+        "question": "محصولاتی که در سفارش‌های مشتریان جدید (مشتریانی که در 3 ماه اخیر ثبت‌نام کرده‌اند) بیشتر فروخته شده‌اند را نمایش بده.",
+        "sql": "SELECT p.name, COUNT(oi.id) AS new_customer_sales FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id JOIN \"order\" AS o ON oi.order_id = o.id JOIN customer AS c ON o.customer_id = c.id WHERE c.registration_date >= CURRENT_DATE - INTERVAL '3 months' GROUP BY p.name ORDER BY new_customer_sales DESC;"
+      },
+      {
+        "id": 100,
+        "question": "کارمندانی که بیشترین تعداد سفارش را برای مشتریان با بیشترین میزان خرید ثبت کرده‌اند را پیدا کن.",
+        "sql": "WITH top_customers AS (SELECT customer_id FROM \"order\" GROUP BY customer_id ORDER BY SUM(total_amount) DESC LIMIT 10) SELECT e.name, COUNT(o.id) AS vip_orders FROM employee AS e JOIN \"order\" AS o ON e.id = o.employee_id JOIN top_customers AS tc ON o.customer_id = tc.customer_id GROUP BY e.name ORDER BY vip_orders DESC;"
+      },
+      {
+        "id": 101,
+        "question": "محصولاتی که در سفارش‌های با بیشترین تنوع تامین‌کننده وجود دارند را نمایش بده.",
+        "sql": "WITH diverse_supplier_orders AS (SELECT o.id, COUNT(DISTINCT s.id) AS supplier_count FROM \"order\" AS o JOIN order_item AS oi ON o.id = oi.order_id JOIN product AS p ON oi.product_id = p.id JOIN product_inventory_requirement AS pir ON p.id = pir.product_id JOIN inventory_item AS ii ON pir.inventory_item_id = ii.id JOIN supplier AS s ON ii.supplier_id = s.id GROUP BY o.id ORDER BY supplier_count DESC LIMIT 5) SELECT DISTINCT p.name FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id JOIN diverse_supplier_orders AS dso ON oi.order_id = dso.id;"
+      },
+      {
+        "id": 102,
+        "question": "مشتریانی که در خریدهای خود بیشترین تنوع دسته محصول را داشته‌اند را پیدا کن.",
+        "sql": "SELECT c.name, COUNT(DISTINCT p.product_type_id) AS category_variety FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id JOIN order_item AS oi ON o.id = oi.order_id JOIN product AS p ON oi.product_id = p.id GROUP BY c.name ORDER BY category_variety DESC;"
+      },
+      {
+        "id": 103,
+        "question": "محصولاتی که در سفارش‌های با کمترین تعداد آیتم بیشتر فروخته می‌شوند را نمایش بده.",
+        "sql": "WITH small_orders AS (SELECT o.id FROM \"order\" AS o JOIN (SELECT order_id, COUNT(id) AS item_count FROM order_item GROUP BY order_id) AS order_items ON o.id = order_items.order_id WHERE order_items.item_count <= 2) SELECT p.name, COUNT(oi.id) AS small_order_sales FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id JOIN small_orders AS so ON oi.order_id = so.id GROUP BY p.name ORDER BY small_order_sales DESC;"
+      },
+      {
+        "id": 104,
+        "question": "کارمندانی که بیشترین میزان فروش را در ساعات اوج (بین ساعت 12 تا 14) داشته‌اند را پیدا کن.",
+        "sql": "SELECT e.name, SUM(o.total_amount) AS peak_hour_sales FROM employee AS e JOIN \"order\" AS o ON e.id = o.employee_id WHERE EXTRACT(HOUR FROM o.order_date) BETWEEN 12 AND 14 GROUP BY e.name ORDER BY peak_hour_sales DESC;"
+      },
+      {
+        "id": 105,
+        "question": "مشتریانی که در سفارش‌های خود بیشترین تعداد محصول از محصولات جدید (محصولات اضافه شده در 3 ماه اخیر) را خریده‌اند را نمایش بده.",
+        "sql": "SELECT c.name, SUM(oi.quantity) AS new_product_quantity FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id JOIN order_item AS oi ON o.id = oi.order_id JOIN product AS p ON oi.product_id = p.id WHERE p.added_date >= CURRENT_DATE - INTERVAL '3 months' GROUP BY c.name ORDER BY new_product_quantity DESC;"
+      },
+      {
+        "id": 106,
+        "question": "محصولاتی که در سفارش‌های با بیشترین فاصله زمانی از سفارش قبلی مشتری وجود دارند را پیدا کن.",
+        "sql": "WITH order_gaps AS (SELECT o.id, o.customer_id, o.order_date, LAG(o.order_date) OVER (PARTITION BY o.customer_id ORDER BY o.order_date) AS prev_order_date, o.order_date - LAG(o.order_date) OVER (PARTITION BY o.customer_id ORDER BY o.order_date) AS gap FROM \"order\" AS o), long_gap_orders AS (SELECT id FROM order_gaps WHERE gap IS NOT NULL ORDER BY gap DESC LIMIT 10) SELECT DISTINCT p.name FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id JOIN long_gap_orders AS lgo ON oi.order_id = lgo.id;"
+      },
+      {
+        "id": 107,
+        "question": "کارمندانی که بیشترین میزان فروش را در محصولات با موجودی کم (کمتر از 10 واحد) داشته‌اند را نمایش بده.",
+        "sql": "WITH low_stock_products AS (SELECT p.id FROM product AS p JOIN product_inventory_requirement AS pir ON p.id = pir.product_id JOIN inventory_item AS ii ON pir.inventory_item_id = ii.id JOIN inventory AS i ON ii.id = i.inventory_item_id GROUP BY p.id HAVING MIN(i.quantity) < 10) SELECT e.name, SUM(oi.price * oi.quantity) AS low_stock_sales FROM employee AS e JOIN \"order\" AS o ON e.id = o.employee_id JOIN order_item AS oi ON o.id = oi.order_id JOIN low_stock_products AS lsp ON oi.product_id = lsp.id GROUP BY e.name ORDER BY low_stock_sales DESC;"
+      },
+      {
+        "id": 108,
+        "question": "مشتریانی که در سفارش‌های خود بیشترین نسبت محصولات گران‌قیمت (بالاتر از 75% قیمت محصولات) به کل محصولات را داشته‌اند را پیدا کن.",
+        "sql": "WITH expensive_products AS (SELECT id FROM product WHERE price > (SELECT percentile_cont(0.75) WITHIN GROUP (ORDER BY price) FROM product)) SELECT c.name, COUNT(CASE WHEN p.id IN (SELECT id FROM expensive_products) THEN 1 ELSE NULL END) * 100.0 / COUNT(oi.id) AS expensive_ratio FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id JOIN order_item AS oi ON o.id = oi.order_id JOIN product AS p ON oi.product_id = p.id GROUP BY c.name HAVING COUNT(oi.id) > 5 ORDER BY expensive_ratio DESC;"
+      },
+      {
+        "id": 109,
+        "question": "محصولاتی که در سفارش‌های مشتریان با بیشترین میانگین زمان بین خریدها وجود دارند را نمایش بده.",
+        "sql": "WITH customer_avg_gaps AS (SELECT c.id, c.name, AVG(next_order.gap) AS avg_gap FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id JOIN (SELECT customer_id, order_date - LAG(order_date) OVER (PARTITION BY customer_id ORDER BY order_date) AS gap FROM \"order\") AS next_order ON c.id = next_order.customer_id WHERE next_order.gap IS NOT NULL GROUP BY c.id, c.name), slow_customers AS (SELECT id FROM customer_avg_gaps ORDER BY avg_gap DESC LIMIT 10) SELECT DISTINCT p.name FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id JOIN \"order\" AS o ON oi.order_id = o.id JOIN slow_customers AS sc ON o.customer_id = sc.id;"
+      },
+      {
+        "id": 110,
+        "question": "کارمندانی که بیشترین تعداد سفارش را برای محصولات با بیشترین حاشیه سود ثبت کرده‌اند را پیدا کن.",
+        "sql": "WITH high_margin_products AS (SELECT p.id FROM product AS p JOIN product_inventory_requirement AS pir ON p.id = pir.product_id JOIN inventory_item AS ii ON pir.inventory_item_id = ii.id GROUP BY p.id, p.price HAVING p.price / SUM(ii.cost_price * pir.quantity_required) > 2) SELECT e.name, COUNT(DISTINCT o.id) AS high_margin_orders FROM employee AS e JOIN \"order\" AS o ON e.id = o.employee_id JOIN order_item AS oi ON o.id = oi.order_id JOIN high_margin_products AS hmp ON oi.product_id = hmp.id GROUP BY e.name ORDER BY high_margin_orders DESC;"
+      },
+      {
+        "id": 111,
+        "question": "مشتریانی که در سفارش‌های خود بیشترین تعداد محصول از محصولات با کمترین فروش را خریده‌اند را نمایش بده.",
+        "sql": "WITH low_selling_products AS (SELECT p.id FROM product AS p LEFT JOIN order_item AS oi ON p.id = oi.product_id GROUP BY p.id ORDER BY COUNT(oi.id) ASC LIMIT 20) SELECT c.name, SUM(oi.quantity) AS rare_product_quantity FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id JOIN order_item AS oi ON o.id = oi.order_id JOIN low_selling_products AS lsp ON oi.product_id = lsp.id GROUP BY c.name ORDER BY rare_product_quantity DESC;"
+      },
+      {
+        "id": 112,
+        "question": "محصولاتی که در سفارش‌های با بیشترین تعداد محصول از یک دسته خاص وجود دارند را پیدا کن.",
+        "sql": "WITH category_focused_orders AS (SELECT o.id, pt.id AS category_id, pt.name AS category_name, COUNT(oi.id) AS category_items FROM \"order\" AS o JOIN order_item AS oi ON o.id = oi.order_id JOIN product AS p ON oi.product_id = p.id JOIN product_type AS pt ON p.product_type_id = pt.id GROUP BY o.id, pt.id, pt.name ORDER BY category_items DESC LIMIT 10) SELECT DISTINCT p.name FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id JOIN category_focused_orders AS cfo ON oi.order_id = cfo.id;"
+      },
+      {
+        "id": 113,
+        "question": "کارمندانی که بیشترین میزان فروش را در روزهای خاصی از هفته (مثلاً دوشنبه‌ها) داشته‌اند را نمایش بده.",
+        "sql": "SELECT e.name, EXTRACT(DOW FROM o.order_date) AS day_of_week, SUM(o.total_amount) AS day_sales FROM employee AS e JOIN \"order\" AS o ON e.id = o.employee_id GROUP BY e.name, EXTRACT(DOW FROM o.order_date) ORDER BY day_sales DESC;"
+      },
+      {
+        "id": 114,
+        "question": "مشتریانی که در سفارش‌های خود بیشترین تعداد محصول از محصولاتی که اخیراً قیمت آنها کاهش یافته است را خریده‌اند را پیدا کن.",
+        "sql": "WITH price_reduced_products AS (SELECT p.id FROM product AS p JOIN price_history AS ph ON p.id = ph.product_id WHERE ph.change_date >= CURRENT_DATE - INTERVAL '3 months' AND p.price < ph.old_price) SELECT c.name, SUM(oi.quantity) AS discounted_items FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id JOIN order_item AS oi ON o.id = oi.order_id JOIN price_reduced_products AS prp ON oi.product_id = prp.id GROUP BY c.name ORDER BY discounted_items DESC;"
+      },
+      {
+        "id": 115,
+        "question": "محصولاتی که در سفارش‌های با بیشترین تنوع قیمتی (اختلاف بین گران‌ترین و ارزان‌ترین محصول) وجود دارند را نمایش بده.",
+        "sql": "WITH price_range_orders AS (SELECT o.id, MAX(p.price) - MIN(p.price) AS price_range FROM \"order\" AS o JOIN order_item AS oi ON o.id = oi.order_id JOIN product AS p ON oi.product_id = p.id GROUP BY o.id ORDER BY price_range DESC LIMIT 10) SELECT DISTINCT p.name FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id JOIN price_range_orders AS pro ON oi.order_id = pro.id;"
+      },
+      {
+        "id": 116,
+        "question": "کارمندانی که بیشترین میزان فروش را در محصولات با بیشترین نرخ بازگشت داشته‌اند را پیدا کن.",
+        "sql": "WITH high_return_products AS (SELECT p.id FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id JOIN return_item AS ri ON oi.id = ri.order_item_id GROUP BY p.id ORDER BY COUNT(ri.id) * 100.0 / COUNT(oi.id) DESC LIMIT 20) SELECT e.name, SUM(oi.price * oi.quantity) AS high_return_sales FROM employee AS e JOIN \"order\" AS o ON e.id = o.employee_id JOIN order_item AS oi ON o.id = oi.order_id JOIN high_return_products AS hrp ON oi.product_id = hrp.id GROUP BY e.name ORDER BY high_return_sales DESC;"
+      },
+      {
+        "id": 117,
+        "question": "مشتریانی که در سفارش‌های خود بیشترین تعداد محصول از محصولاتی که معمولاً با هم خریداری می‌شوند را خریده‌اند را نمایش بده.",
+        "sql": "WITH frequently_bought_together AS (SELECT p1.id AS product1_id, p2.id AS product2_id, COUNT(DISTINCT o.id) AS order_count FROM product AS p1 JOIN order_item AS oi1 ON p1.id = oi1.product_id JOIN \"order\" AS o ON oi1.order_id = o.id JOIN order_item AS oi2 ON o.id = oi2.order_id JOIN product AS p2 ON oi2.product_id = p2.id WHERE p1.id < p2.id GROUP BY p1.id, p2.id ORDER BY order_count DESC LIMIT 10), bundle_products AS (SELECT product1_id AS product_id FROM frequently_bought_together UNION SELECT product2_id AS product_id FROM frequently_bought_together) SELECT c.name, SUM(oi.quantity) AS bundle_items FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id JOIN order_item AS oi ON o.id = oi.order_id JOIN bundle_products AS bp ON oi.product_id = bp.product_id GROUP BY c.name ORDER BY bundle_items DESC;"
+      },
+      {
+        "id": 118,
+        "question": "محصولاتی که در سفارش‌های مشتریان با بیشترین نرخ بازگشت محصول وجود دارند را پیدا کن.",
+        "sql": "WITH customer_return_rates AS (SELECT c.id, c.name, COUNT(ri.id) * 100.0 / COUNT(oi.id) AS return_rate FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id JOIN order_item AS oi ON o.id = oi.order_id LEFT JOIN return_item AS ri ON oi.id = ri.order_item_id GROUP BY c.id, c.name HAVING COUNT(oi.id) > 10 ORDER BY return_rate DESC LIMIT 10) SELECT DISTINCT p.name FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id JOIN \"order\" AS o ON oi.order_id = o.id JOIN customer_return_rates AS crr ON o.customer_id = crr.id;"
+      },
+      {
+        "id": 119,
+        "question": "کارمندانی که بیشترین میزان فروش را در محصولات با بیشترین نرخ رشد فروش در 3 ماه اخیر داشته‌اند را نمایش بده.",
+        "sql": "WITH product_growth AS (SELECT p.id, (SUM(CASE WHEN o.order_date >= CURRENT_DATE - INTERVAL '1 month' THEN oi.quantity ELSE 0 END) - SUM(CASE WHEN o.order_date >= CURRENT_DATE - INTERVAL '3 months' AND o.order_date < CURRENT_DATE - INTERVAL '2 months' THEN oi.quantity ELSE 0 END)) * 100.0 / NULLIF(SUM(CASE WHEN o.order_date >= CURRENT_DATE - INTERVAL '3 months' AND o.order_date < CURRENT_DATE - INTERVAL '2 months' THEN oi.quantity ELSE 0 END), 0) AS growth_rate FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id JOIN \"order\" AS o ON oi.order_id = o.id WHERE o.order_date >= CURRENT_DATE - INTERVAL '3 months' GROUP BY p.id HAVING SUM(CASE WHEN o.order_date >= CURRENT_DATE - INTERVAL '3 months' AND o.order_date < CURRENT_DATE - INTERVAL '2 months' THEN oi.quantity ELSE 0 END) > 0 ORDER BY growth_rate DESC LIMIT 20), growing_products AS (SELECT id FROM product_growth) SELECT e.name, SUM(oi.price * oi.quantity) AS growth_product_sales FROM employee AS e JOIN \"order\" AS o ON e.id = o.employee_id JOIN order_item AS oi ON o.id = oi.order_id JOIN growing_products AS gp ON oi.product_id = gp.id WHERE o.order_date >= CURRENT_DATE - INTERVAL '1 month' GROUP BY e.name ORDER BY growth_product_sales DESC;"
+      },
+      {
+        "id": 120,
+        "question": "مشتریانی که در سفارش‌های خود بیشترین تعداد محصول از محصولاتی که معمولاً در ساعات خاصی از روز فروخته می‌شوند را خریده‌اند را پیدا کن.",
+        "sql": "WITH time_specific_products AS (SELECT p.id, EXTRACT(HOUR FROM o.order_date) AS hour_of_day, COUNT(oi.id) AS hour_sales FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id JOIN \"order\" AS o ON oi.order_id = o.id GROUP BY p.id, EXTRACT(HOUR FROM o.order_date) ORDER BY hour_sales DESC LIMIT 20) SELECT c.name, SUM(oi.quantity) AS time_specific_items FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id JOIN order_item AS oi ON o.id = oi.order_id JOIN time_specific_products AS tsp ON oi.product_id = tsp.id GROUP BY c.name ORDER BY time_specific_items DESC;"
+      },
+      {
+        "id": 121,
+        "question": "محصولاتی که در سفارش‌های با بیشترین تعداد محصول از تامین‌کنندگان مختلف وجود دارند را نمایش بده.",
+        "sql": "WITH supplier_diverse_orders AS (SELECT o.id, COUNT(DISTINCT s.id) AS supplier_count FROM \"order\" AS o JOIN order_item AS oi ON o.id = oi.order_id JOIN product AS p ON oi.product_id = p.id JOIN product_inventory_requirement AS pir ON p.id = pir.product_id JOIN inventory_item AS ii ON pir.inventory_item_id = ii.id JOIN supplier AS s ON ii.supplier_id = s.id GROUP BY o.id ORDER BY supplier_count DESC LIMIT 10) SELECT DISTINCT p.name FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id JOIN supplier_diverse_orders AS sdo ON oi.order_id = sdo.id;"
+      },
+      {
+        "id": 122,
+        "question": "کارمندانی که بیشترین میزان فروش را در محصولات با بیشترین تعداد اقلام انبار مورد نیاز داشته‌اند را پیدا کن.",
+        "sql": "WITH complex_products AS (SELECT p.id FROM product AS p JOIN product_inventory_requirement AS pir ON p.id = pir.product_id GROUP BY p.id ORDER BY COUNT(pir.inventory_item_id) DESC LIMIT 20) SELECT e.name, SUM(oi.price * oi.quantity) AS complex_product_sales FROM employee AS e JOIN \"order\" AS o ON e.id = o.employee_id JOIN order_item AS oi ON o.id = oi.order_id JOIN complex_products AS cp ON oi.product_id = cp.id GROUP BY e.name ORDER BY complex_product_sales DESC;"
+      },
+      {
+        "id": 123,
+        "question": "مشتریانی که در سفارش‌های خود بیشترین تعداد محصول از محصولاتی که به تازگی به انبار اضافه شده‌اند را خریده‌اند را نمایش بده.",
+        "sql": "WITH new_inventory_products AS (SELECT p.id FROM product AS p JOIN product_inventory_requirement AS pir ON p.id = pir.product_id JOIN inventory_item AS ii ON pir.inventory_item_id = ii.id WHERE ii.added_date >= CURRENT_DATE - INTERVAL '1 month') SELECT c.name, SUM(oi.quantity) AS new_inventory_items FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id JOIN order_item AS oi ON o.id = oi.order_id JOIN new_inventory_products AS nip ON oi.product_id = nip.id GROUP BY c.name ORDER BY new_inventory_items DESC;"
+      },
+      {
+        "id": 124,
+        "question": "محصولاتی که در سفارش‌های مشتریان با بیشترین میزان خرید در ساعات غیرکاری وجود دارند را پیدا کن.",
+        "sql": "WITH after_hours_customers AS (SELECT c.id FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id WHERE EXTRACT(HOUR FROM o.order_date) NOT BETWEEN 9 AND 17 GROUP BY c.id ORDER BY SUM(o.total_amount) DESC LIMIT 10) SELECT DISTINCT p.name FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id JOIN \"order\" AS o ON oi.order_id = o.id JOIN after_hours_customers AS ahc ON o.customer_id = ahc.id;"
+      },
+      {
+        "id": 125,
+        "question": "کارمندانی که بیشترین میزان فروش را در محصولات با بیشترین نرخ سود در دسته‌های مختلف داشته‌اند را نمایش بده.",
+        "sql": "WITH category_profit_leaders AS (SELECT p.id FROM product AS p JOIN product_type AS pt ON p.product_type_id = pt.id JOIN product_inventory_requirement AS pir ON p.id = pir.product_id JOIN inventory_item AS ii ON pir.inventory_item_id = ii.id GROUP BY p.id, p.price, pt.id HAVING p.price / SUM(ii.cost_price * pir.quantity_required) = (SELECT MAX(p2.price / SUM(ii2.cost_price * pir2.quantity_required)) FROM product AS p2 JOIN product_inventory_requirement AS pir2 ON p2.id = pir2.product_id JOIN inventory_item AS ii2 ON pir2.inventory_item_id = ii2.id WHERE p2.product_type_id = pt.id GROUP BY p2.id, p2.price)) SELECT e.name, SUM(oi.price * oi.quantity) AS category_leader_sales FROM employee AS e JOIN \"order\" AS o ON e.id = o.employee_id JOIN order_item AS oi ON o.id = oi.order_id JOIN category_profit_leaders AS cpl ON oi.product_id = cpl.id GROUP BY e.name ORDER BY category_leader_sales DESC;"
+      },
+      {
+        "id": 126,
+        "question": "مشتریانی که در سفارش‌های خود بیشترین تعداد محصول از محصولاتی که معمولاً در سبد خرید قرار می‌گیرند اما خریداری نمی‌شوند را خریده‌اند را پیدا کن.",
+        "sql": "WITH abandoned_products AS (SELECT p.id FROM product AS p JOIN shopping_cart AS sc ON p.id = sc.product_id WHERE sc.is_purchased = FALSE GROUP BY p.id ORDER BY COUNT(sc.id) DESC LIMIT 20) SELECT c.name, SUM(oi.quantity) AS abandoned_items FROM customer AS c JOIN \"order\" AS o ON c.id = o.customer_id JOIN order_item AS oi ON o.id = oi.order_id JOIN abandoned_products AS ap ON oi.product_id = ap.id GROUP BY c.name ORDER BY abandoned_items DESC;"
+      },
+      {
+        "id": 127,
+        "question": "محصولاتی که در سفارش‌های با بیشترین نسبت قیمت به تعداد آیتم وجود دارند را نمایش بده.",
+        "sql": "WITH high_value_per_item_orders AS (SELECT o.id, o.total_amount / COUNT(oi.id) AS value_per_item FROM \"order\" AS o JOIN order_item AS oi ON o.id = oi.order_id GROUP BY o.id, o.total_amount ORDER BY value_per_item DESC LIMIT 10) SELECT DISTINCT p.name FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id JOIN high_value_per_item_orders AS hvpio ON oi.order_id = hvpio.id;"
+      },
+      {
+        "id": 128,
+        "question": "کارمندانی که بیشترین میزان فروش را در محصولات با کمترین نرخ بازگشت داشته‌اند را پیدا کن.",
+        "sql": "WITH low_return_products AS (SELECT p.id FROM product AS p JOIN order_item AS oi ON p.id = oi.product_id LEFT JOIN return_item AS ri ON oi.id = ri.order_item_id GROUP BY p.id HAVING COUNT(oi.id) > 10 ORDER BY COUNT(ri.id) * 100.0 / COUNT(oi.id) ASC LIMIT 20) SELECT e.name, SUM(oi.price * oi.quantity) AS low_return_sales FROM employee AS e JOIN \"order\" AS o ON e.id = o.employee_id JOIN order_item AS oi ON o.id = oi.order_id JOIN low_return_products AS lrp ON oi.product_id = lrp.id GROUP BY e.name ORDER BY low_return_sales DESC;"
+      }
+    ]
+  }

@@ -1,0 +1,38 @@
+db_id,question,farsi_question,gold_sql,error,success,predicted_sql
+dog_kennels,"Find the id, last name and cell phone of the professionals who live in the state of Indiana or have performed more than two treatments.",,"SELECT professional_id ,  last_name ,  cell_number FROM Professionals WHERE state  =  'Indiana' UNION SELECT T1.professional_id ,  T1.last_name ,  T1.cell_number FROM Professionals AS T1 JOIN Treatments AS T2 ON T1.professional_id  =  T2.professional_id GROUP BY T1.professional_id HAVING count(*)  >  2","API error occurred: Status 429
+{""message"":""Requests rate limit exceeded""}",False,
+dog_kennels,Find the states where both owners and professionals live.,,SELECT state FROM Owners INTERSECT SELECT state FROM Professionals,,True,"SELECT DISTINCT Owners.state
+FROM Owners
+JOIN Professionals ON Owners.state ILIKE Professionals.state
+ORDER BY Owners.state;"
+orchestra,List names of conductors in descending order of years of work.,,SELECT Name FROM conductor ORDER BY Year_of_Work DESC,,True,"SELECT Name, Year_of_Work FROM conductor ORDER BY Year_of_Work DESC"
+orchestra,"Find the number of orchestras whose record format is ""CD"" or ""DVD"".",,"SELECT COUNT(*) FROM orchestra WHERE Major_Record_Format  =  ""CD"" OR Major_Record_Format  =  ""DVD""",,True,"SELECT COUNT(DISTINCT orchestra.Orchestra_ID)
+FROM orchestra
+WHERE lower(orchestra.Major_Record_Format) IN ('cd', 'dvd');"
+wta_1,"What are the first names of all players, and their total ranking points?",,"SELECT sum(ranking_points) ,  T1.first_name FROM players AS T1 JOIN rankings AS T2 ON T1.player_id  =  T2.player_id GROUP BY T1.first_name",,True,"SELECT DISTINCT players.first_name, SUM(rankings.ranking_points) AS total_ranking_points
+FROM players
+JOIN rankings ON players.player_id = rankings.player_id
+GROUP BY players.first_name
+ORDER BY total_ranking_points DESC;"
+wta_1,List the number of all matches who played in years of 2013 or 2016.,,SELECT count(*) FROM matches WHERE YEAR  =  2013 OR YEAR  =  2016,,True,"SELECT COUNT(*)
+FROM matches
+WHERE year IN (2013, 2016);"
+flight_2,Return the number of airlines in the USA.,,"SELECT count(*) FROM AIRLINES WHERE Country  =  ""USA""",,True,"SELECT COUNT(*)
+FROM airlines
+WHERE lower(Country) ILIKE '%usa%';"
+flight_2,Find the number of flights landing in the city of Aberdeen or Abilene.,,"SELECT count(*) FROM Flights AS T1 JOIN Airports AS T2 ON T1.DestAirport  =  T2.AirportCode WHERE T2.city  =  ""Aberdeen"" OR T2.city  =  ""Abilene""",,True,"SELECT COUNT(*)
+FROM flights
+JOIN airports AS dest ON flights.DestAirport = dest.AirportCode
+WHERE lower(dest.City) ILIKE 'aberdeen' OR lower(dest.City) ILIKE 'abilene';"
+singer,Show the names of singers that have more than one song.,,SELECT T1.Name FROM singer AS T1 JOIN song AS T2 ON T1.Singer_ID  =  T2.Singer_ID GROUP BY T1.Name HAVING COUNT(*)  >  1,,True,"SELECT DISTINCT s.Name
+FROM singer s
+JOIN song so ON s.Singer_ID = so.Singer_ID
+GROUP BY s.Singer_ID, s.Name
+HAVING COUNT(so.Song_ID) > 1
+ORDER BY s.Name;"
+singer,What are the names of the singers that have more than one songs?,,SELECT T1.Name FROM singer AS T1 JOIN song AS T2 ON T1.Singer_ID  =  T2.Singer_ID GROUP BY T1.Name HAVING COUNT(*)  >  1,,True,"SELECT DISTINCT s.Name
+FROM singer s
+JOIN song so ON s.Singer_ID = so.Singer_ID
+GROUP BY s.Singer_ID, s.Name
+HAVING COUNT(so.Song_ID) > 1
+ORDER BY s.Name;"
