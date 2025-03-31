@@ -8,7 +8,7 @@ from . import services
 EMBEDDING_MODEL = "mistral-embed"
 EMEDDING_LENGTH = services.EMEDDING_LENGTH
 
-
+# Define your models and also add embedding
 class EmployeeRole(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)

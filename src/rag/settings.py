@@ -20,7 +20,7 @@
 # LLM_API_KEY = config("LLM_API_KEY")
 # SITE_URL = config("SITE_URL", default="")
 # SITE_NAME = config("SITE_NAME", default="")
-# LLM_MODEL = config("LLM_MODEL", default="deepseek/deepseek-chat:free")
+# LLM_MODEL = config("LLM_MODEL", default="oogle/gemma-3-27b-it:free")
 
 # def init():
 #     llm = OpenRouter(
@@ -52,6 +52,7 @@ from llama_index.llms.mistralai import MistralAI
 from llama_index.core import Settings
 from llama_index.embeddings.mistralai import MistralAIEmbedding
 
+# Add the models from your models.py for tables
 VECTOR_DB_NAME = config("VECTOR_DB_NAME", default='vector_db')
 MODELS = [
     "EmployeeRole",

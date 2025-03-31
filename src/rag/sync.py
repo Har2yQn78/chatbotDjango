@@ -13,7 +13,7 @@ def should_include(obj) -> bool:
             return False
     return True
 
-
+# Define the relevant models and their metadata fields
 relevant_models = [
     'Employee', 
     'ProductType',
@@ -28,6 +28,9 @@ metadata_fields = {
     'InventoryItem': ['name', 'quantity', 'unit'],
     'EmployeeRole': ['name', 'description'],
 }
+# Add any additional models and their metadata fields here
+
+# Function to retrieve all documents from the database
 def get_all_docs():
     docs = []
     for model_name in relevant_models:

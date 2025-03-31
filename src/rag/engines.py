@@ -10,7 +10,7 @@ from llama_index.core.retrievers import NLSQLRetriever
 
 from . import db, settings, prompts
 
-EMBEDDING_LENGTH = settings.EMBEDDING_LENGTH  # Fixed typo
+EMBEDDING_LENGTH = settings.EMBEDDING_LENGTH 
 
 settings.init()
 
